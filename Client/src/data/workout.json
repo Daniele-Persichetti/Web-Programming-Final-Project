@@ -1,0 +1,194 @@
+{
+  "workouts": [
+    {
+      "id": 1,
+      "type": "Strength",
+      "name": "Gym Session by the lake",
+      "date": "04/25/2024",
+      "duration": 45,
+      "distance": 0,
+      "calories": 450,
+      "comment": "Amazing workout by the Lake!"
+    },
+    {
+      "id": 1,
+      "type": "Strength",
+      "name": "Gym Session by the lake Part 2",
+      "date": "04/26/2024",
+      "duration": 30,
+      "distance": 0,
+      "calories": 380,
+      "comment": "Amazing workout by the Lake!"
+    },
+    {
+      "id": 1,
+      "type": "Cardio",
+      "name": "Running by the Lake",
+      "date": "10/20/2024",
+      "duration": 30,
+      "distance": 2,
+      "calories": 300,
+      "comment": "Amazing workout by the Lake!"
+    },
+    {
+      "id": 2,
+      "type": "Cardio",
+      "name": "Morning Run",
+      "date": "04/28/2024",
+      "duration": 360,
+      "distance": 5.0,
+      "calories": 550,
+      "comment": "Felt great running with a breeze!"
+    },
+    {
+      "id": 2,
+      "type": "Flexibility",
+      "name": "Yoga Session",
+      "date": "05/02/2024",
+      "duration": 180,
+      "distance": 0,
+      "calories": 200,
+      "comment": "Focused on stretching and balance."
+    },
+    {
+      "id": 2,
+      "type": "Strength",
+      "name": "Weight Training",
+      "date": "05/05/2024",
+      "duration": 270,
+      "distance": 0,
+      "calories": 400,
+      "comment": "Intense arm and chest workout."
+    },
+    {
+      "id": 2,
+      "type": "Balance",
+      "name": "Balance Drills",
+      "date": "05/07/2024",
+      "duration": 120,
+      "distance": 0,
+      "calories": 150,
+      "comment": "Challenging but rewarding!"
+    },
+    {
+      "id": 3,
+      "type": "Cardio",
+      "name": "Cycling",
+      "date": "05/10/2024",
+      "duration": 540,
+      "distance": 15.0,
+      "calories": 700,
+      "comment": "Explored new trails."
+    },
+    {
+      "id": 3,
+      "type": "Strength",
+      "name": "HIIT Session",
+      "date": "05/12/2024",
+      "duration": 180,
+      "distance": 1.0,
+      "calories": 500,
+      "comment": "Short but intense."
+    },
+    {
+      "id": 3,
+      "type": "Flexibility",
+      "name": "Pilates",
+      "date": "05/15/2024",
+      "duration": 240,
+      "distance": 0,
+      "calories": 250,
+      "comment": "Great for core strength."
+    },
+    {
+      "id": 3,
+      "type": "Balance",
+      "name": "Bosu Ball Training",
+      "date": "05/18/2024",
+      "duration": 90,
+      "distance": 0,
+      "calories": 120,
+      "comment": "Improved coordination."
+    },
+    {
+      "id": 4,
+      "type": "Cardio",
+      "name": "Swimming",
+      "date": "05/20/2024",
+      "duration": 360,
+      "distance": 2.5,
+      "calories": 600,
+      "comment": "Relaxing swim session."
+    },
+    {
+      "id": 4,
+      "type": "Strength",
+      "name": "Leg Day",
+      "date": "05/22/2024",
+      "duration": 240,
+      "distance": 0,
+      "calories": 450,
+      "comment": "Squats and deadlifts, heavy session."
+    },
+    {
+      "id": 4,
+      "type": "Balance",
+      "name": "Tai Chi",
+      "date": "05/25/2024",
+      "duration": 180,
+      "distance": 0,
+      "calories": 160,
+      "comment": "Focused on slow movements."
+    },
+    {
+      "id": 4,
+      "type": "Flexibility",
+      "name": "Stretching Routine",
+      "date": "05/28/2024",
+      "duration": 120,
+      "distance": 0,
+      "calories": 100,
+      "comment": "Focused on hamstrings and back."
+    },
+    {
+      "id": 5,
+      "type": "Cardio",
+      "name": "Evening Walk",
+      "date": "05/30/2024",
+      "duration": 180,
+      "distance": 2.0,
+      "calories": 180,
+      "comment": "Nice and relaxing after dinner."
+    },
+    {
+      "id": 5,
+      "type": "Strength",
+      "name": "Core Workout",
+      "date": "06/02/2024",
+      "duration": 150,
+      "distance": 0,
+      "calories": 300,
+      "comment": "Focused on abs and lower back."
+    },
+    {
+      "id": 5,
+      "type": "Balance",
+      "name": "Slacklining",
+      "date": "06/05/2024",
+      "duration": 120,
+      "distance": 0,
+      "calories": 130,
+      "comment": "Fun and challenging!"
+    },
+    {
+      "id": 5,
+      "type": "Flexibility",
+      "name": "Morning Stretch",
+      "date": "06/07/2024",
+      "duration": 60,
+      "distance": 0,
+      "calories": 70,
+      "comment": "Simple routine to start the day."
+    }
+  ]
+}
