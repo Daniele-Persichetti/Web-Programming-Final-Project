@@ -9,7 +9,7 @@
         <div class="left-column">
           <!-- User Info Card -->
           <div class="user-info-card">
-            <img src="placeholder-avatar.jpg" alt="User Avatar" class="user-avatar" />
+            <!--<img src="placeholder-avatar.jpg" alt="User Avatar" class="user-avatar" />-->
             <h2 class="user-name">John Doe</h2>
             <p class="user-role">Fitness Enthusiast</p>
             <p class="user-location">Bay Area, San Francisco, CA</p>
