@@ -83,7 +83,7 @@ const currentUser = computed(() => props.user)
             <!-- Achievement 1 -->
             <div class="achievement-item">
               <img
-                src="placeholder-achievement1.jpg"
+                src="https://dummyjson.com/icon/lionelm/128"
                 alt="Marathon Master"
                 class="achievement-img"
               />
@@ -95,7 +95,7 @@ const currentUser = computed(() => props.user)
             <!-- Achievement 2 -->
             <div class="achievement-item">
               <img
-                src="placeholder-achievement2.jpg"
+                src="https://dummyjson.com/icon/lionelm/128"
                 alt="Strength Beast"
                 class="achievement-img"
               />
@@ -106,7 +106,11 @@ const currentUser = computed(() => props.user)
             </div>
             <!-- Achievement 3 -->
             <div class="achievement-item">
-              <img src="placeholder-achievement3.jpg" alt="Yoga Guru" class="achievement-img" />
+              <img
+                src="https://dummyjson.com/icon/lionelm/128"
+                alt="Yoga Guru"
+                class="achievement-img"
+              />
               <div class="achievement-info">
                 <h4 class="achievement-title">Yoga Guru</h4>
                 <p class="achievement-description">Held a plank for 5 minutes straight.</p>
@@ -114,7 +118,11 @@ const currentUser = computed(() => props.user)
             </div>
             <!-- Achievement 4 -->
             <div class="achievement-item">
-              <img src="placeholder-achievement4.jpg" alt="Trail Blazer" class="achievement-img" />
+              <img
+                src="https://dummyjson.com/icon/lionelm/128"
+                alt="Trail Blazer"
+                class="achievement-img"
+              />
               <div class="achievement-info">
                 <h4 class="achievement-title">Trail Blazer</h4>
                 <p class="achievement-description">Biked over 200 km in a single month.</p>
@@ -122,7 +130,11 @@ const currentUser = computed(() => props.user)
             </div>
             <!-- Achievement 5 -->
             <div class="achievement-item">
-              <img src="placeholder-achievement5.jpg" alt="Swim Champ" class="achievement-img" />
+              <img
+                src="https://dummyjson.com/icon/lionelm/128"
+                alt="Swim Champ"
+                class="achievement-img"
+              />
               <div class="achievement-info">
                 <h4 class="achievement-title">Swim Champ</h4>
                 <p class="achievement-description">Swam 5 km in open water.</p>

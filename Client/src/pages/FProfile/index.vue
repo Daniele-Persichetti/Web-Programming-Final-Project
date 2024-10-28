@@ -9,7 +9,11 @@
         <div class="left-column">
           <!-- User Info Card -->
           <div class="user-info-card">
-            <img src="placeholder-avatar.jpg" alt="User Avatar" class="user-avatar" />
+            <img
+              src="https://dummyjson.com/icon/lionelm/128"
+              alt="User Avatar"
+              class="user-avatar"
+            />
             <h2 class="user-name">John Doe</h2>
             <p class="user-role">Fitness Enthusiast</p>
             <p class="user-location">Bay Area, San Francisco, CA</p>
@@ -64,7 +68,7 @@
             <!-- Achievement 1 -->
             <div class="achievement-item">
               <img
-                src="placeholder-achievement1.jpg"
+                src="https://dummyjson.com/icon/lionelm/128"
                 alt="Marathon Master"
                 class="achievement-img"
               />
@@ -76,7 +80,7 @@
             <!-- Achievement 2 -->
             <div class="achievement-item">
               <img
-                src="placeholder-achievement2.jpg"
+                src="https://dummyjson.com/icon/lionelm/128"
                 alt="Strength Beast"
                 class="achievement-img"
               />
@@ -87,7 +91,11 @@
             </div>
             <!-- Achievement 3 -->
             <div class="achievement-item">
-              <img src="placeholder-achievement3.jpg" alt="Yoga Guru" class="achievement-img" />
+              <img
+                src="https://dummyjson.com/icon/lionelm/128"
+                alt="Yoga Guru"
+                class="achievement-img"
+              />
               <div class="achievement-info">
                 <h4 class="achievement-title">Yoga Guru</h4>
                 <p class="achievement-description">Held a plank for 5 minutes straight.</p>
@@ -95,7 +103,11 @@
             </div>
             <!-- Achievement 4 -->
             <div class="achievement-item">
-              <img src="placeholder-achievement4.jpg" alt="Trail Blazer" class="achievement-img" />
+              <img
+                src="https://dummyjson.com/icon/lionelm/128"
+                alt="Trail Blazer"
+                class="achievement-img"
+              />
               <div class="achievement-info">
                 <h4 class="achievement-title">Trail Blazer</h4>
                 <p class="achievement-description">Biked over 200 km in a single month.</p>
@@ -103,7 +115,11 @@
             </div>
             <!-- Achievement 5 -->
             <div class="achievement-item">
-              <img src="placeholder-achievement5.jpg" alt="Swim Champ" class="achievement-img" />
+              <img
+                src="https://dummyjson.com/icon/lionelm/128"
+                alt="Swim Champ"
+                class="achievement-img"
+              />
               <div class="achievement-info">
                 <h4 class="achievement-title">Swim Champ</h4>
                 <p class="achievement-description">Swam 5 km in open water.</p>
