@@ -5,7 +5,7 @@
   "scripts": {
     "start": "node Server/index.mjs",
     "dev": "nodemon Server/index.mjs",
-    "client": "cd Client && npm run build"
+    "client": "cd Client && npm run build-only"
   },
   "dependencies": {
     "bulma": "^1.0.2",
