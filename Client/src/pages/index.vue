@@ -53,7 +53,13 @@ body {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  min-height: 100vh;
+}
+
+h1 {
+  color: #2a5934; /* Elegant green */
+  text-align: center;
+  font-size: 28px;
+  font-weight: 700;
 }
 
 h1,
@@ -99,6 +105,7 @@ button:hover {
 /* Three-Column Section */
 #welcome-sections {
   display: flex;
+  margin: auto !important;
   flex-wrap: wrap;
   gap: 20px;
   width: 100%;

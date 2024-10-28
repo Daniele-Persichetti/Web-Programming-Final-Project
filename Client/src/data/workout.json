@@ -1,194 +1,194 @@
 {
   "workouts": [
     {
-      "id": 1,
+      "userId": 1,
       "type": "Strength",
-      "name": "Gym Session by the lake",
-      "date": "04/25/2024",
+      "name": "Full-Body Strength Training",
+      "date": "10/22/2024",
       "duration": 45,
       "distance": 0,
       "calories": 450,
-      "comment": "Amazing workout by the Lake!"
+      "comment": "Intense circuit training, felt great afterward!"
     },
     {
-      "id": 1,
+      "userId": 1,
       "type": "Strength",
-      "name": "Gym Session by the lake Part 2",
-      "date": "04/26/2024",
+      "name": "Upper Body Workout",
+      "date": "10/28/2024",
       "duration": 30,
       "distance": 0,
       "calories": 380,
-      "comment": "Amazing workout by the Lake!"
+      "comment": "Focused on arms and shoulders, short but effective."
     },
     {
-      "id": 1,
+      "userId": 1,
       "type": "Cardio",
-      "name": "Running by the Lake",
-      "date": "10/20/2024",
+      "name": "Evening Run by the Park",
+      "date": "10/06/2024",
       "duration": 30,
       "distance": 2,
       "calories": 300,
-      "comment": "Amazing workout by the Lake!"
+      "comment": "Quick run to clear my mind, refreshing!"
     },
     {
-      "id": 2,
+      "userId": 2,
       "type": "Cardio",
-      "name": "Morning Run",
-      "date": "04/28/2024",
-      "duration": 360,
+      "name": "Morning Jog",
+      "date": "10/08/2024",
+      "duration": 60,
       "distance": 5.0,
       "calories": 550,
-      "comment": "Felt great running with a breeze!"
+      "comment": "Great way to start the day, enjoyed the cool weather."
     },
     {
-      "id": 2,
+      "userId": 2,
       "type": "Flexibility",
-      "name": "Yoga Session",
-      "date": "05/02/2024",
-      "duration": 180,
+      "name": "Morning Yoga",
+      "date": "09/25/2024",
+      "duration": 30,
       "distance": 0,
       "calories": 200,
-      "comment": "Focused on stretching and balance."
+      "comment": "Focused on stretching and improving flexibility."
     },
     {
-      "id": 2,
+      "userId": 2,
       "type": "Strength",
-      "name": "Weight Training",
-      "date": "05/05/2024",
-      "duration": 270,
+      "name": "Leg Workout",
+      "date": "10/12/2024",
+      "duration": 45,
       "distance": 0,
       "calories": 400,
-      "comment": "Intense arm and chest workout."
+      "comment": "Intense leg day, squats and lunges."
     },
     {
-      "id": 2,
+      "userId": 2,
       "type": "Balance",
-      "name": "Balance Drills",
-      "date": "05/07/2024",
-      "duration": 120,
+      "name": "Core Balance Training",
+      "date": "10/01/2024",
+      "duration": 20,
       "distance": 0,
       "calories": 150,
-      "comment": "Challenging but rewarding!"
+      "comment": "Challenging core drills, but rewarding!"
     },
     {
-      "id": 3,
+      "userId": 3,
       "type": "Cardio",
-      "name": "Cycling",
-      "date": "05/10/2024",
-      "duration": 540,
+      "name": "Cycling Session",
+      "date": "09/30/2024",
+      "duration": 90,
       "distance": 15.0,
       "calories": 700,
-      "comment": "Explored new trails."
+      "comment": "Explored new trails, great endurance workout."
     },
     {
-      "id": 3,
+      "userId": 3,
       "type": "Strength",
-      "name": "HIIT Session",
-      "date": "05/12/2024",
-      "duration": 180,
+      "name": "HIIT Workout",
+      "date": "10/18/2024",
+      "duration": 30,
       "distance": 1.0,
       "calories": 500,
-      "comment": "Short but intense."
+      "comment": "High-intensity intervals, felt the burn!"
     },
     {
-      "id": 3,
+      "userId": 3,
       "type": "Flexibility",
-      "name": "Pilates",
-      "date": "05/15/2024",
-      "duration": 240,
+      "name": "Pilates Class",
+      "date": "10/04/2024",
+      "duration": 40,
       "distance": 0,
       "calories": 250,
-      "comment": "Great for core strength."
+      "comment": "Focused on core strength and flexibility."
     },
     {
-      "id": 3,
+      "userId": 3,
       "type": "Balance",
-      "name": "Bosu Ball Training",
-      "date": "05/18/2024",
-      "duration": 90,
+      "name": "Bosu Ball Workout",
+      "date": "09/28/2024",
+      "duration": 15,
       "distance": 0,
       "calories": 120,
-      "comment": "Improved coordination."
+      "comment": "Improved stability and coordination."
     },
     {
-      "id": 4,
+      "userId": 4,
       "type": "Cardio",
-      "name": "Swimming",
-      "date": "05/20/2024",
-      "duration": 360,
+      "name": "Afternoon Swim",
+      "date": "10/14/2024",
+      "duration": 60,
       "distance": 2.5,
       "calories": 600,
-      "comment": "Relaxing swim session."
+      "comment": "Relaxing swim, perfect for recovery."
     },
     {
-      "id": 4,
+      "userId": 4,
       "type": "Strength",
-      "name": "Leg Day",
-      "date": "05/22/2024",
-      "duration": 240,
+      "name": "Leg Day Workout",
+      "date": "09/20/2024",
+      "duration": 40,
       "distance": 0,
       "calories": 450,
-      "comment": "Squats and deadlifts, heavy session."
+      "comment": "Squats, deadlifts, and calf raises."
     },
     {
-      "id": 4,
+      "userId": 4,
       "type": "Balance",
-      "name": "Tai Chi",
-      "date": "05/25/2024",
-      "duration": 180,
+      "name": "Tai Chi Practice",
+      "date": "10/22/2024",
+      "duration": 30,
       "distance": 0,
       "calories": 160,
-      "comment": "Focused on slow movements."
+      "comment": "Focused on slow movements and breathing."
     },
     {
-      "id": 4,
+      "userId": 4,
       "type": "Flexibility",
       "name": "Stretching Routine",
-      "date": "05/28/2024",
-      "duration": 120,
+      "date": "10/10/2024",
+      "duration": 20,
       "distance": 0,
       "calories": 100,
-      "comment": "Focused on hamstrings and back."
+      "comment": "Stretched out tight muscles, felt great."
     },
     {
-      "id": 5,
+      "userId": 5,
       "type": "Cardio",
-      "name": "Evening Walk",
-      "date": "05/30/2024",
-      "duration": 180,
+      "name": "Evening Walk in the Park",
+      "date": "09/27/2024",
+      "duration": 30,
       "distance": 2.0,
       "calories": 180,
-      "comment": "Nice and relaxing after dinner."
+      "comment": "Nice and relaxing, enjoyed the sunset."
     },
     {
-      "id": 5,
+      "userId": 5,
       "type": "Strength",
-      "name": "Core Workout",
-      "date": "06/02/2024",
-      "duration": 150,
+      "name": "Core Strength Session",
+      "date": "10/09/2024",
+      "duration": 25,
       "distance": 0,
       "calories": 300,
       "comment": "Focused on abs and lower back."
     },
     {
-      "id": 5,
+      "userId": 5,
       "type": "Balance",
-      "name": "Slacklining",
-      "date": "06/05/2024",
-      "duration": 120,
+      "name": "Slackline Practice",
+      "date": "10/20/2024",
+      "duration": 20,
       "distance": 0,
       "calories": 130,
-      "comment": "Fun and challenging!"
+      "comment": "Practiced balance, fun but tricky."
     },
     {
-      "id": 5,
+      "userId": 5,
       "type": "Flexibility",
-      "name": "Morning Stretch",
-      "date": "06/07/2024",
-      "duration": 60,
+      "name": "Morning Stretch Routine",
+      "date": "10/23/2024",
+      "duration": 10,
       "distance": 0,
       "calories": 70,
-      "comment": "Simple routine to start the day."
+      "comment": "Simple routine to start the day, felt refreshing."
     }
   ]
 }

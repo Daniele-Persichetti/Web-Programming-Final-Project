@@ -1,0 +1,8 @@
+html,
+body {
+  background-image: url('bg.webp');
+  background-position: right;
+  background-repeat: no-repeat;
+  background-size: cover;
+  min-height: 0%;
+}

@@ -23,6 +23,7 @@ export interface User {
   password: string
   ip: string
   macAddress: string
+  friends: string
   role: string
 }
 

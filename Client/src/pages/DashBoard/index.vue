@@ -1,9 +1,23 @@
 <script setup lang="ts">
-import { ref, onMounted, computed } from 'vue'
+import { ref, onMounted, computed, watch } from 'vue'
 import { getAll, type Workout } from '@/models/workout'
+import WorkoutCard from '@/components/WorkoutCard.vue'
+import type { User } from '@/models/users'
+import WorkoutEdit from '@/components/WorkoutEdit.vue'
 
-// Replace this with actual user ID retrieval
-const userId = ref(1)
+const props = defineProps<{
+  user: User | null
+}>()
+
+interface WorkoutFormData {
+  type: string
+  name: string
+  date: string
+  duration: number
+  distance: number
+  calories: number
+  comment: string
+}
 
 interface WorkoutStats {
   mostCommonType: string
@@ -12,6 +26,17 @@ interface WorkoutStats {
   totalCalories: number
   workoutCount: number
 }
+
+// Form data
+const formData = ref<WorkoutFormData>({
+  type: 'Cardio',
+  name: '',
+  date: new Date().toISOString().split('T')[0],
+  duration: 0,
+  distance: 0,
+  calories: 0,
+  comment: ''
+})
 
 const todayStats = ref<WorkoutStats>({
   mostCommonType: '',
@@ -40,23 +65,10 @@ const allTimeStats = ref<WorkoutStats>({
 const userWorkouts = ref<Workout[]>([])
 const totalUserWorkouts = ref(0)
 
-// Function to get the appropriate icon class for each workout type
-function getWorkoutIconClass(type: string): string {
-  switch (type.toLowerCase()) {
-    case 'cardio':
-      return 'fa-solid fa-heart-circle-bolt'
-    case 'strength':
-      return 'fa-solid fa-dumbbell'
-    case 'flexibility':
-      return 'fa-solid fa-person-running'
-    case 'balance':
-      return 'fa-solid fa-scale-balanced'
-    default:
-      return 'fa-solid fa-question'
-  }
-}
+const showEditModal = ref(false)
+const workoutToEdit = ref<Workout | null>(null)
 
-//Function to calculate the stats
+// Function to calculate the stats
 function calculateStats(workouts: Workout[]): WorkoutStats {
   if (workouts.length === 0) {
     return {
@@ -75,7 +87,7 @@ function calculateStats(workouts: Workout[]): WorkoutStats {
 
   workouts.forEach((workout) => {
     typeCount[workout.type] = (typeCount[workout.type] || 0) + 1
-    totalDuration += workout.duration / workouts.length
+    totalDuration += workout.duration
     totalDistance += workout.distance
     totalCalories += workout.calories
   })
@@ -91,7 +103,7 @@ function calculateStats(workouts: Workout[]): WorkoutStats {
   }
 }
 
-//Function to filter data for a certain time frame
+// Function to filter workouts by date
 function filterWorkoutsByDate(workouts: Workout[], startDate: Date, endDate: Date): Workout[] {
   return workouts.filter((workout) => {
     const workoutDate = new Date(workout.date)
@@ -99,26 +111,55 @@ function filterWorkoutsByDate(workouts: Workout[], startDate: Date, endDate: Dat
   })
 }
 
-//function to sort the workouts based on time
+// Function to sort workouts by date
 const recentWorkouts = computed(() => {
   return [...userWorkouts.value]
     .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
     .slice(0, 3)
 })
 
-// function runs when the component is mounted. It fetches all workouts,
-// filters them for the current user, and calculates workout statistics for
-// today, this week, and all time.
-onMounted(async () => {
-  const result = await getAll()
-  if (result.error) {
-    console.error('Error fetching workouts:', result.error)
+// Function to handle form submission
+function handleSubmit(event: Event) {
+  event.preventDefault()
+
+  if (!props.user) {
+    console.error('No user logged in')
     return
   }
 
-  userWorkouts.value = result.data.filter((workout) => workout.id === userId.value)
-  totalUserWorkouts.value = userWorkouts.value.length
+  // Create new workout object
+  const newWorkout: Workout = {
+    userId: props.user.id,
+    type: formData.value.type,
+    name: formData.value.name,
+    date: formData.value.date,
+    duration: Number(formData.value.duration),
+    distance: Number(formData.value.distance),
+    calories: Number(formData.value.calories),
+    comment: formData.value.comment
+  }
 
+  // Add to workouts array
+  userWorkouts.value.unshift(newWorkout)
+  totalUserWorkouts.value++
+
+  // Recalculate stats
+  updateStats()
+
+  // Reset form
+  formData.value = {
+    type: 'Cardio',
+    name: '',
+    date: new Date().toISOString().split('T')[0],
+    duration: 0,
+    distance: 0,
+    calories: 0,
+    comment: ''
+  }
+}
+
+// Function to update all stats
+function updateStats() {
   const now = new Date()
   const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate())
   const weekStart = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 7)
@@ -129,15 +170,78 @@ onMounted(async () => {
   todayStats.value = calculateStats(todayWorkouts)
   weekStats.value = calculateStats(weekWorkouts)
   allTimeStats.value = calculateStats(userWorkouts.value)
+}
+
+// Function to load user workouts
+async function loadUserWorkouts() {
+  if (!props.user) return
+
+  const result = await getAll()
+  if (result.error) {
+    console.error('Error fetching workouts:', result.error)
+    return
+  }
+
+  userWorkouts.value = result.data.filter((workout) => workout.userId === props.user?.id)
+  totalUserWorkouts.value = userWorkouts.value.length
+  updateStats()
+}
+
+function handleEditWorkout(workout: Workout) {
+  workoutToEdit.value = workout
+  showEditModal.value = true
+}
+
+// Function to handle delete request
+function handleDeleteWorkout(workout: Workout) {
+  if (confirm('Are you sure you want to delete this workout?')) {
+    userWorkouts.value = userWorkouts.value.filter(
+      (w) => !(w.userId === workout.userId && w.date === workout.date && w.name === workout.name)
+    )
+    totalUserWorkouts.value--
+    updateStats()
+  }
+}
+
+//function to handle saving the edits
+function handleSaveEdit(updatedWorkout: Workout) {
+  const index = userWorkouts.value.findIndex(
+    (w) =>
+      w.userId === workoutToEdit.value?.userId &&
+      w.date === workoutToEdit.value?.date &&
+      w.name === workoutToEdit.value?.name
+  )
+
+  if (index !== -1) {
+    const savedDate = new Date(updatedWorkout.date)
+    savedDate.setDate(savedDate.getDate())
+
+    userWorkouts.value[index] = {
+      ...updatedWorkout,
+      date: savedDate.toISOString().split('T')[0]
+    }
+  }
+  updateStats()
+
+  showEditModal.value = false
+  workoutToEdit.value = null
+}
+
+// Watch for changes in current user
+watch(
+  () => props.user,
+  () => {
+    loadUserWorkouts()
+  }
+)
+
+onMounted(() => {
+  loadUserWorkouts()
 })
 </script>
 
 <template>
   <main>
-    <link
-      rel="stylesheet"
-      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
-    />
     <div id="dashboard-content" class="content">
       <h1>Dashboard</h1>
       <!-- First Section: Workout Statistics Chart -->
@@ -170,33 +274,20 @@ onMounted(async () => {
         <!-- First Column: My Activity -->
         <div class="left-column">
           <h2 class="section-title">My Recent Activity</h2>
-
-          <!-- Workout Blurbs -->
-          <div class="workout-blurb" v-for="workout in recentWorkouts" :key="workout.date">
-            <div class="workout-img">
-              <i :class="getWorkoutIconClass(workout.type)"></i>
-            </div>
-            <div class="workout-info">
-              <h3 class="workout-title">{{ workout.name }}</h3>
-              <p class="workout-description">{{ workout.comment }}</p>
-              <ul class="workout-details">
-                <li>Type: {{ workout.type }}</li>
-                <li>Date: {{ new Date(workout.date).toLocaleDateString() }}</li>
-                <li>Duration: {{ workout.duration }} minutes</li>
-                <li v-if="workout.type === 'Cardio'">
-                  Distance: {{ workout.distance.toFixed(2) }} km
-                </li>
-                <li>Calories Burned: {{ workout.calories }} kcal</li>
-              </ul>
-            </div>
-          </div>
+          <WorkoutCard
+            v-for="workout in recentWorkouts"
+            :key="workout.date"
+            :workout="workout"
+            @edit-workout="handleEditWorkout"
+            @delete-workout="handleDeleteWorkout"
+          />
         </div>
         <!-- Second Column: Add Workout Form -->
         <div class="right-column">
           <h2 class="section-title">Add a New Workout</h2>
-          <form id="add-workout-form" class="form" action="#">
+          <form id="add-workout-form" class="form" @submit="handleSubmit">
             <label for="workout-type" class="form-label">Type of Workout:</label>
-            <select id="workout-type" name="workout-type" class="form-select">
+            <select id="workout-type" v-model="formData.type" class="form-select" required>
               <option value="Cardio">Cardio</option>
               <option value="Strength">Strength</option>
               <option value="Flexibility">Flexibility</option>
@@ -204,16 +295,28 @@ onMounted(async () => {
             </select>
 
             <label for="workout-name" class="form-label">Workout Name:</label>
-            <input type="text" id="workout-name" name="workout-name" class="form-input" required />
+            <input
+              type="text"
+              id="workout-name"
+              v-model="formData.name"
+              class="form-input"
+              required
+            />
 
             <label for="workout-date" class="form-label">Date:</label>
-            <input type="date" id="workout-date" name="workout-date" class="form-input" required />
+            <input
+              type="date"
+              id="workout-date"
+              v-model="formData.date"
+              class="form-input"
+              required
+            />
 
             <label for="workout-duration" class="form-label">Duration (minutes):</label>
             <input
               type="number"
               id="workout-duration"
-              name="workout-duration"
+              v-model="formData.duration"
               class="form-input"
               required
             />
@@ -222,18 +325,23 @@ onMounted(async () => {
             <input
               type="number"
               id="workout-distance"
-              name="workout-distance"
+              v-model="formData.distance"
               class="form-input"
               step="0.01"
             />
 
             <label for="calories-burned" class="form-label">Calories Burned:</label>
-            <input type="number" id="calories-burned" name="calories-burned" class="form-input" />
+            <input
+              type="number"
+              id="calories-burned"
+              v-model="formData.calories"
+              class="form-input"
+            />
 
             <label for="workout-notes" class="form-label">Additional Notes:</label>
             <textarea
               id="workout-notes"
-              name="workout-notes"
+              v-model="formData.comment"
               class="form-textarea"
               rows="4"
             ></textarea>
@@ -243,6 +351,12 @@ onMounted(async () => {
         </div>
       </div>
     </div>
+    <WorkoutEdit
+      :show="showEditModal"
+      :workout="workoutToEdit"
+      @close="showEditModal = false"
+      @save="handleSaveEdit"
+    />
   </main>
 </template>
 
@@ -328,70 +442,7 @@ img {
   flex: 1 1 calc(50% - 20px);
 }
 
-/* Workout Blurb Styles */
-.workout-blurb {
-  display: flex;
-  align-items: center;
-  margin-bottom: 20px;
-  padding: 10px;
-  border: 1px solid #e0e0e0;
-  border-radius: 8px;
-  background-color: #e8f5e9;
-}
-
-.workoutBalance-img {
-  width: 80px;
-  height: 80px;
-  margin-right: 15px;
-  border-radius: 50%;
-  color: black;
-}
-
-.workoutStrength-img {
-  width: 80px;
-  height: 80px;
-  margin-right: 15px;
-  border-radius: 50%;
-  color: black;
-}
-
-.workoutFlexibility-img {
-  width: 80px;
-  height: 80px;
-  margin-right: 15px;
-  border-radius: 50%;
-  color: black;
-}
-
-.workout-img {
-  width: 80px;
-  height: 80px;
-  margin-right: 15px;
-  border-radius: 50%;
-  color: black;
-}
-
-.workout-img i {
-  color: black !important;
-  font-size: 50px;
-}
-
-.workout-info {
-  flex-grow: 1;
-}
-
-.workout-title {
-  font-size: 1.2em;
-  margin-bottom: 5px;
-  color: #2a5934;
-}
-
-.workout-description,
-.workout-details li {
-  color: #555;
-}
-
-/* Add Workout Form Styles */
+/* Workout Form Styles */
 .form {
   display: flex;
   flex-direction: column;

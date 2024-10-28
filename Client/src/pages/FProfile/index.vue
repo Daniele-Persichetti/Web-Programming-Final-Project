@@ -1,34 +1,22 @@
-<script setup lang="ts">
-import { computed } from 'vue'
-import type { User } from '@/models/users'
-
-const props = defineProps<{
-  user: User | null
-}>()
-
-const currentUser = computed(() => props.user)
-</script>
+<script setup lang="ts"></script>
 
 <template>
   <main>
     <div id="profile-content" class="content">
-      <h1>Profile</h1>
       <!-- Two Columns Layout -->
       <div class="two-columns">
         <!-- Left Column: User Info -->
         <div class="left-column">
           <!-- User Info Card -->
-          <div class="user-info-card" v-if="currentUser">
-            <img :src="currentUser.image" :alt="currentUser.firstName" class="user-avatar" />
-            <h2 class="user-name">{{ currentUser.firstName }} {{ currentUser.lastName }}</h2>
-            <p class="user-role">
-              {{ currentUser.role === 'admin' ? 'Administrator' : 'Fitness Enthusiast' }}
-            </p>
-            <p class="user-location">
-              {{ currentUser.address.city }}, {{ currentUser.address.state }},
-              {{ currentUser.address.country }}
-            </p>
-            <div class="user-actions"></div>
+          <div class="user-info-card">
+            <img src="placeholder-avatar.jpg" alt="User Avatar" class="user-avatar" />
+            <h2 class="user-name">John Doe</h2>
+            <p class="user-role">Fitness Enthusiast</p>
+            <p class="user-location">Bay Area, San Francisco, CA</p>
+            <div class="user-actions">
+              <button class="follow-button">Follow</button>
+              <button class="message-button">Message</button>
+            </div>
           </div>
           <!-- Favorite Links Card -->
           <div class="user-links-card">
@@ -60,22 +48,15 @@ const currentUser = computed(() => props.user)
         <!-- Right Column: Contact Details & Achievement Wall -->
         <div class="right-column">
           <!-- Contact & Details Card -->
-          <div class="contact-details-card" v-if="currentUser">
+          <div class="contact-details-card">
             <h3>Profile Information</h3>
-            <p>
-              <strong>Full Name:</strong> {{ currentUser.firstName }} {{ currentUser.lastName }}
-            </p>
-            <p><strong>Email:</strong> {{ currentUser.email }}</p>
-            <p><strong>Phone:</strong> {{ currentUser.phone }}</p>
-            <p>
-              <strong>Address:</strong> {{ currentUser.address.address }},
-              {{ currentUser.address.city }}, {{ currentUser.address.state }}
-            </p>
-            <p><strong>Date of Birth:</strong> {{ currentUser.birthDate }}</p>
-            <p>
-              <strong>Gender:</strong>
-              {{ currentUser.gender.charAt(0).toUpperCase() + currentUser.gender.slice(1) }}
-            </p>
+            <p><strong>Full Name:</strong> John Doe</p>
+            <p><strong>Email:</strong> john.doe@example.com</p>
+            <p><strong>Phone:</strong> (239) 816-9029</p>
+            <p><strong>Mobile:</strong> (320) 380-4539</p>
+            <p><strong>Address:</strong> Bay Area, San Francisco, CA</p>
+            <p><strong>Date of Birth:</strong> January 1, 1990</p>
+            <p><strong>Gender:</strong> Male</p>
           </div>
           <!-- Achievement Wall -->
           <div class="achievement-wall">
@@ -148,6 +129,7 @@ h2,
 h3,
 h4 {
   color: #2a5934;
+  /* Elegant green */
   margin-bottom: 10px;
 }
 
@@ -197,6 +179,7 @@ img {
   border: 1px solid #e0e0e0;
   border-radius: 8px;
   background-color: #e8f5e9;
+  /* Light green */
 }
 
 .user-avatar {
@@ -204,13 +187,13 @@ img {
   height: 100px;
   border-radius: 50%;
   margin-bottom: 10px;
-  object-fit: cover;
 }
 
 .user-name {
   font-size: 1.5em;
   margin-bottom: 5px;
   color: #2a5934;
+  /* Elegant green */
 }
 
 .user-role,
@@ -220,6 +203,24 @@ img {
 
 .user-actions {
   margin-top: 10px;
+}
+
+.follow-button,
+.message-button {
+  background-color: #2a5934;
+  /* Elegant green */
+  color: white;
+  padding: 8px 12px;
+  margin: 5px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.follow-button:hover,
+.message-button:hover {
+  background-color: #1e4727;
+  /* Darker green */
 }
 
 /* Favorite Links Card */
@@ -239,6 +240,7 @@ img {
 .user-links-card i {
   margin-right: 10px;
   color: #2a5934;
+  /* Elegant green */
   font-size: 1.2em;
 }
 
@@ -248,6 +250,7 @@ img {
   border: 1px solid #e0e0e0;
   border-radius: 8px;
   background-color: #e8f5e9;
+  /* Light green */
 }
 
 .contact-details-card p {
@@ -260,6 +263,8 @@ img {
   border: 1px solid #e0e0e0;
   border-radius: 8px;
   margin-top: 20px;
+  margin-bottom: 20px;
+  /* Add space between sections */
 }
 
 .achievement-item {
@@ -270,6 +275,7 @@ img {
   border: 1px solid #e0e0e0;
   border-radius: 8px;
   background-color: #e8f5e9;
+  /* Light green */
 }
 
 .achievement-img {
@@ -287,6 +293,7 @@ img {
   font-size: 1.1em;
   margin: 3px 0px;
   color: #2a5934;
+  /* Elegant green */
 }
 
 .achievement-description {
@@ -296,6 +303,7 @@ img {
 }
 
 /* Responsive Design */
+/* Mobile Layout */
 @media screen and (max-width: 767px) {
   #profile-content {
     padding: 10px;
@@ -325,6 +333,7 @@ img {
   }
 }
 
+/* Tablet Landscape and Desktop Layout */
 @media screen and (min-width: 768px) {
   .two-columns {
     display: flex;
