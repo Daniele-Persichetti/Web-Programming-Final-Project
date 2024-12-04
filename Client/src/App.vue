@@ -1,20 +1,27 @@
 <script setup lang="ts">
-import { ref } from 'vue'
-import { RouterView } from 'vue-router'
+import { ref, provide } from 'vue'
 import type { User } from '@/models/users'
-import NavBar from './components/NavBar.vue'
+import NavBar from '@/components/NavBar.vue'
 
-const selectedUser = ref<User | null>(null)
+const currentUser = ref<User | null>(null)
+provide('currentUser', currentUser)
+
+// Handle user selection from NavBar
+function handleUserSelected(user: User | null) {
+  currentUser.value = user
+}
 </script>
 
 <template>
-  <header>
-    <NavBar @user-selected="selectedUser = $event" />
-    <RouterView :user="selectedUser" />
-  </header>
+  <NavBar @user-selected="handleUserSelected" />
+  <RouterView />
 </template>
 
 <style scoped>
+.app-container {
+  min-height: 100vh;
+}
+
 body {
   background-color: rgb(69, 161, 242);
 }

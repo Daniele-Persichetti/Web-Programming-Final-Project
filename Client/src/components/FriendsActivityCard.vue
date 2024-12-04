@@ -7,8 +7,7 @@ const props = defineProps<{
   user: User
 }>()
 
-function formatDate(dateString: string): string {
-  const date = new Date(dateString)
+function formatDate(date: Date): string {
   return date.toLocaleDateString()
 }
 </script>

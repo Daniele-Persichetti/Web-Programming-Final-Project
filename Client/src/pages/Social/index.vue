@@ -1,33 +1,25 @@
 <script setup lang="ts">
-import { ref, onMounted, watch, computed } from 'vue'
+import { ref, onMounted, watch, computed, inject, type Ref } from 'vue'
 import { getAll as getAllWorkouts, type Workout } from '@/models/workout'
 import { getAll as getAllUsers, type User } from '@/models/users'
 import FriendsActivityCard from '@/components/FriendsActivityCard.vue'
 
-const props = defineProps<{
-  user: User | null
-}>()
+const currentUser = inject<Ref<User | null>>('currentUser')!
 
 const friendWorkouts = ref<Array<{ workout: Workout; user: User }>>([])
 const searchQuery = ref('')
 const recentSearches = ref<User[]>([])
 const allUsers = ref<User[]>(getAllUsers().data)
 
-// Get friend IDs from the comma-separated string
-function getFriendIds(friendString: string): number[] {
-  return friendString.split(',').map((id) => parseInt(id.trim()))
-}
-
 // Check if a user is a friend
 function isFriend(userId: number): boolean {
-  if (!props.user) return false
-  const friendIds = getFriendIds(props.user.friends)
-  return friendIds.includes(userId)
+  if (!currentUser.value) return false
+  return currentUser.value.friends.includes(userId)
 }
 
 // Computed property for filtered search results
 const searchResults = computed(() => {
-  if (!searchQuery.value || !props.user) return []
+  if (!searchQuery.value || !currentUser.value) return []
 
   const query = searchQuery.value.toLowerCase()
 
@@ -35,7 +27,7 @@ const searchResults = computed(() => {
     .filter(
       (user) =>
         // Don't show current user
-        user.id !== props.user?.id &&
+        user.id !== currentUser.value?.id &&
         // Search by first name, last name, or username
         (user.firstName.toLowerCase().includes(query) ||
           user.lastName.toLowerCase().includes(query) ||
@@ -70,20 +62,20 @@ function viewProfile(user: User) {
 
 // Get recent workouts for all friends
 function getRecentFriendWorkouts() {
-  if (!props.user) return
+  if (!currentUser.value) return
 
   const allWorkouts = getAllWorkouts().data
   const oneYearAgo = new Date()
   oneYearAgo.setFullYear(oneYearAgo.getFullYear() - 1)
 
-  const friendIds = getFriendIds(props.user.friends)
+  // Use friends array directly
+  const friendIds = currentUser.value.friends
 
   // Get recent workouts for each friend
   const friendWorkoutGroups = friendIds.map((friendId) => {
     const friend = allUsers.value.find((user) => user.id === friendId)
     if (!friend) return []
 
-    // Get friend's workouts from the last year, sorted by date
     return allWorkouts
       .filter((workout) => workout.userId === friendId && new Date(workout.date) > oneYearAgo)
       .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
@@ -103,7 +95,7 @@ function getRecentFriendWorkouts() {
 
 // Watch for changes in current user
 watch(
-  () => props.user,
+  () => currentUser.value,
   () => {
     getRecentFriendWorkouts()
   }
@@ -114,6 +106,7 @@ onMounted(() => {
 })
 </script>
 
+<!-- Template remains exactly the same -->
 <template>
   <main>
     <div id="social-content" class="content">
@@ -122,7 +115,10 @@ onMounted(() => {
         <!-- Left Column: Friends Activity -->
         <div class="left-column">
           <h2 class="section-title">Friends Activity</h2>
-          <div v-for="item in friendWorkouts" :key="item.workout.userId + item.workout.date">
+          <div
+            v-for="item in friendWorkouts"
+            :key="`${item.workout.userId} - ${item.workout.date}`"
+          >
             <FriendsActivityCard :workout="item.workout" :user="item.user" />
           </div>
           <div v-if="friendWorkouts.length === 0" class="no-workouts">

@@ -1,12 +1,8 @@
 <script setup lang="ts">
-import { computed } from 'vue'
+import { inject, type Ref } from 'vue'
 import type { User } from '@/models/users'
 
-const props = defineProps<{
-  user: User | null
-}>()
-
-const currentUser = computed(() => props.user)
+const currentUser = inject<Ref<User | null>>('currentUser')!
 </script>
 
 <template>

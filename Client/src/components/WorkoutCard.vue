@@ -10,8 +10,7 @@ const emit = defineEmits<{
   'delete-workout': [workout: Workout]
 }>()
 
-function formatDate(dateString: string): string {
-  const date = new Date(dateString)
+function formatDate(date: Date): string {
   return date.toLocaleDateString()
 }
 

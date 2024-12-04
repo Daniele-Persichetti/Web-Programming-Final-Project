@@ -1,23 +1,11 @@
 <script setup lang="ts">
-import { ref, onMounted, computed, watch } from 'vue'
-import { getAll, type Workout } from '@/models/workout'
+import { ref, onMounted, computed, watch, inject, type Ref } from 'vue'
+import { getAll, newWorkout, type Workout } from '@/models/workout'
 import WorkoutCard from '@/components/WorkoutCard.vue'
 import type { User } from '@/models/users'
 import WorkoutEdit from '@/components/WorkoutEdit.vue'
 
-const props = defineProps<{
-  user: User | null
-}>()
-
-interface WorkoutFormData {
-  type: string
-  name: string
-  date: string
-  duration: number
-  distance: number
-  calories: number
-  comment: string
-}
+const currentUser = inject<Ref<User | null>>('currentUser')!
 
 interface WorkoutStats {
   mostCommonType: string
@@ -28,15 +16,7 @@ interface WorkoutStats {
 }
 
 // Form data
-const formData = ref<WorkoutFormData>({
-  type: 'Cardio',
-  name: '',
-  date: new Date().toISOString().split('T')[0],
-  duration: 0,
-  distance: 0,
-  calories: 0,
-  comment: ''
-})
+const formData = ref<Workout>(newWorkout(currentUser.value?.id || 0))
 
 const todayStats = ref<WorkoutStats>({
   mostCommonType: '',
@@ -122,40 +102,29 @@ const recentWorkouts = computed(() => {
 function handleSubmit(event: Event) {
   event.preventDefault()
 
-  if (!props.user) {
+  if (!currentUser.value) {
     console.error('No user logged in')
     return
   }
 
   // Create new workout object
-  const newWorkout: Workout = {
-    userId: props.user.id,
-    type: formData.value.type,
-    name: formData.value.name,
-    date: formData.value.date,
+  const newWorkoutData: Workout = {
+    ...formData.value,
+    userId: currentUser.value.id,
     duration: Number(formData.value.duration),
     distance: Number(formData.value.distance),
-    calories: Number(formData.value.calories),
-    comment: formData.value.comment
+    calories: Number(formData.value.calories)
   }
 
   // Add to workouts array
-  userWorkouts.value.unshift(newWorkout)
+  userWorkouts.value.unshift(newWorkoutData)
   totalUserWorkouts.value++
 
   // Recalculate stats
   updateStats()
 
   // Reset form
-  formData.value = {
-    type: 'Cardio',
-    name: '',
-    date: new Date().toISOString().split('T')[0],
-    duration: 0,
-    distance: 0,
-    calories: 0,
-    comment: ''
-  }
+  formData.value = newWorkout(currentUser.value.id)
 }
 
 // Function to update all stats
@@ -173,16 +142,16 @@ function updateStats() {
 }
 
 // Function to load user workouts
-async function loadUserWorkouts() {
-  if (!props.user) return
+function loadUserWorkouts() {
+  if (!currentUser.value) return
 
-  const result = await getAll()
+  const result = getAll()
   if (result.error) {
     console.error('Error fetching workouts:', result.error)
     return
   }
 
-  userWorkouts.value = result.data.filter((workout) => workout.userId === props.user?.id)
+  userWorkouts.value = result.data.filter((workout) => workout.userId === currentUser.value?.id)
   totalUserWorkouts.value = userWorkouts.value.length
   updateStats()
 }
@@ -203,25 +172,23 @@ function handleDeleteWorkout(workout: Workout) {
   }
 }
 
-//function to handle saving the edits
+// Function to handle saving the edits
 function handleSaveEdit(updatedWorkout: Workout) {
   const index = userWorkouts.value.findIndex(
     (w) =>
       w.userId === workoutToEdit.value?.userId &&
-      w.date === workoutToEdit.value?.date &&
+      w.date.getTime() === workoutToEdit.value?.date.getTime() &&
       w.name === workoutToEdit.value?.name
   )
 
   if (index !== -1) {
-    const savedDate = new Date(updatedWorkout.date)
-    savedDate.setDate(savedDate.getDate())
-
+    // Ensure we're working with Date objects
     userWorkouts.value[index] = {
       ...updatedWorkout,
-      date: savedDate.toISOString().split('T')[0]
+      date: new Date(updatedWorkout.date)
     }
+    updateStats()
   }
-  updateStats()
 
   showEditModal.value = false
   workoutToEdit.value = null
@@ -229,7 +196,7 @@ function handleSaveEdit(updatedWorkout: Workout) {
 
 // Watch for changes in current user
 watch(
-  () => props.user,
+  () => currentUser.value,
   () => {
     loadUserWorkouts()
   }
@@ -276,7 +243,7 @@ onMounted(() => {
           <h2 class="section-title">My Recent Activity</h2>
           <WorkoutCard
             v-for="workout in recentWorkouts"
-            :key="workout.date"
+            :key="`${workout.date}-${workout.userId}`"
             :workout="workout"
             @edit-workout="handleEditWorkout"
             @delete-workout="handleDeleteWorkout"
@@ -307,7 +274,8 @@ onMounted(() => {
             <input
               type="date"
               id="workout-date"
-              v-model="formData.date"
+              :value="formData.date.toISOString().split('T')[0]"
+              @input="(e) => (formData.date = new Date((e.target as HTMLInputElement).value))"
               class="form-input"
               required
             />

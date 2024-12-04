@@ -1,14 +1,16 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, inject, type Ref } from 'vue'
 import { getAll, type User, type Address } from '@/models/users'
 import UserEdit from '@/components/UserEdit.vue'
+
+const currentUser = inject<Ref<User | null>>('currentUser')!
 
 const showAddModal = ref(false)
 const showEditModal = ref(false)
 const users = ref<User[]>(getAll().data)
 const editingUser = ref<User | null>(null)
 
-// Form data structure for add user only (edit now handled by UserEdit component)
+// Form data structure for add user only
 interface UserFormData {
   firstName: string
   lastName: string
@@ -81,7 +83,7 @@ function handleAddUser() {
     image: 'https://dummyjson.com/icon/user/128', // Default image
     ip: '0.0.0.0', // Default IP
     macAddress: '00:00:00:00:00:00', // Default MAC
-    friends: '' // Empty friends list
+    friends: [] // Fixed: Empty array for friends list
   }
 
   users.value.push(newUser)
@@ -107,6 +109,12 @@ function handleSaveEdit(updatedUser: User) {
 
 // Function to handle deleting a user
 function handleDeleteUser(user: User) {
+  // Add check to prevent deleting self
+  if (user.id === currentUser.value?.id) {
+    alert('You cannot delete your own account!')
+    return
+  }
+
   if (confirm(`Are you sure you want to delete user ${user.firstName} ${user.lastName}?`)) {
     users.value = users.value.filter((u) => u.id !== user.id)
   }
@@ -254,7 +262,7 @@ body {
 }
 
 h1 {
-  color: #2a5934; /* Elegant green */
+  color: #2a5934;
   text-align: center;
   font-size: 28px;
   font-weight: 700;
