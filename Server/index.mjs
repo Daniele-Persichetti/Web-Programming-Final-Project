@@ -40,11 +40,6 @@ app.use("/api/v1/users", userController);
 app.use("/api/v1/workouts", workoutController);
 app.use("/api/v1/friends", friendController);
 
-// Serve index.html for all other routes
-app.get("*", (req, res) => {
-  res.sendFile(path.join(__dirname, "../Client/dist/index.html"));
-});
-
 app.listen(PORT, () => {
   console.log(`Server running at http://localhost:${PORT}`);
 });
