@@ -15,7 +15,7 @@ const currentUser = inject<Ref<User | null>>('currentUser')!
         <div class="left-column">
           <!-- User Info Card -->
           <div class="user-info-card" v-if="currentUser">
-            <img :src="currentUser.image" :alt="currentUser.firstname" class="user-avatar" />
+            <img :src="currentUser.image ?? undefined" :alt="currentUser.firstname" class="user-avatar" />
             <h2 class="user-name">{{ currentUser.firstname }} {{ currentUser.lastname }}</h2>
             <p class="user-role">
               {{ currentUser.role === 'admin' ? 'Administrator' : 'Fitness Enthusiast' }}

@@ -15,7 +15,7 @@ function formatDate(workoutDate: string): string {
 <template>
   <div class="activity-blurb">
     <div class="user-section">
-      <img :src="user.image" :alt="user.firstname" class="user-img" />
+      <img :src="user.image ?? undefined" :alt="user.firstname" class="user-img" />
       <div class="user-name">{{ user.firstname }} {{ user.lastname }}</div>
     </div>
 

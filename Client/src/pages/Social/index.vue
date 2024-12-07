@@ -171,7 +171,7 @@ onMounted(async () => {
               :key="user.id"
               class="user-result-blurb"
             >
-              <img :src="user.image" :alt="user.firstname" class="user-img" />
+              <img :src="user.image ?? undefined" :alt="user.firstname" class="user-img" />
               <div class="user-info">
                 <h4 class="user-name">{{ user.firstname }} {{ user.lastname }}</h4>
                 <p class="username">@{{ user.username }}</p>

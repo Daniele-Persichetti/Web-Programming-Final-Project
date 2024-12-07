@@ -222,7 +222,7 @@ onMounted(fetchUsers);
       </thead>
       <tbody>
         <tr v-for="user in users" :key="user.id">
-          <td><img :src="user.image" :alt="user.firstname" class="user-photo" /></td>
+          <td><img :src="user.image ?? undefined" :alt="user.firstname" class="user-photo" /></td>
           <td>{{ user.firstname }}</td>
           <td>{{ user.lastname }}</td>
           <td>{{ user.email }}</td>
