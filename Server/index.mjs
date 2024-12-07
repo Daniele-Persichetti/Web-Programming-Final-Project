@@ -23,6 +23,12 @@ app.use((req, res, next) => {
 });
 app.use(express.json());
 
+app.use(
+  cors({
+    origin: "https://web-programming-final-project-fitness-app.onrender.com",
+  })
+);
+
 app.get("/api/current-user", async (_req, res) => {
   if (user) {
     res.json(user);
