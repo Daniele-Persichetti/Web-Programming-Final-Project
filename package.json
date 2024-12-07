@@ -6,7 +6,7 @@
     "start": "node Server/index.mjs",
     "build": "cd Client && npm install && npm run build",
     "dev": "nodemon Server/index.mjs --watch server",
-    "client": "cd Client && npm run build-only"
+    "install": "cd Client && npm install"
   },
   "type": "module",
   "dependencies": {

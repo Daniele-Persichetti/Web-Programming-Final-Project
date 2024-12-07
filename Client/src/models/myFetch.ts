@@ -1,5 +1,5 @@
 const API_URL = import.meta.env.PROD
-  ? `${window.location.origin}/api/v1/` // Production: relative path
+  ? '/api/v1/' // Production: relative path
   : 'http://localhost:3000/api/v1/' // Development: local server
 
 export async function rest<T>(url: string, data?: any, method?: string): Promise<T> {
@@ -7,7 +7,7 @@ export async function rest<T>(url: string, data?: any, method?: string): Promise
   const timeoutId = setTimeout(() => controller.abort(), 5000) // 5 second timeout
 
   try {
-    const response = await fetch(API_URL, {
+    const response = await fetch(url, {
       method: method ?? (data ? 'POST' : 'GET'),
       headers: {
         'Content-Type': 'application/json'
@@ -34,14 +34,17 @@ export async function rest<T>(url: string, data?: any, method?: string): Promise
   }
 }
 
-export function api<T>(url: string, data?: any, method?: string): Promise<T> {
-  console.log(`Making ${method || (data ? 'POST' : 'GET')} request to:`, API_URL + url)
+export async function api<T>(url: string, data?: any, method?: string): Promise<T> {
+  const fullUrl = API_URL + url
+  console.log(`Making ${method || (data ? 'POST' : 'GET')} request to:`, fullUrl)
   if (data) console.log('With data:', data)
 
-  return rest<T>(API_URL + url, data, method).catch((error) => {
+  try {
+    return await rest<T>(fullUrl, data, method)
+  } catch (error) {
     console.error('API request failed:', error)
     throw error
-  })
+  }
 }
 
 export async function loadScript(url: string): Promise<void> {

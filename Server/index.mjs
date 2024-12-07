@@ -15,31 +15,31 @@ const user = getCurrentUser();
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// Cors configuration
+// Middleware
+app.use(express.json());
+
+// CORS configuration
+const allowedOrigins = [
+  "http://localhost:5173",
+  "https://web-programming-final-project-fitness-app.onrender.com",
+];
+
 app.use(
   cors({
-    origin: process.env.PROD
-      ? "*" // Allow all origins in production
-      : "http://localhost:5173",
+    origin: function (origin, callback) {
+      // Allow requests with no origin (mobile apps, curl, etc.)
+      if (!origin) return callback(null, true);
+
+      if (allowedOrigins.indexOf(origin) === -1) {
+        return callback(null, false);
+      }
+      return callback(null, true);
+    },
     credentials: true,
   })
 );
 
-app.use(
-  cors({
-    origin: "https://web-programming-final-project-fitness-app.onrender.com",
-  })
-);
-
-app.get("/api/current-user", async (_req, res) => {
-  if (user) {
-    res.json(user);
-  } else {
-    res.status(404).json({ error: "User not logged in" });
-  }
-});
-
-// Serve static files in production
+// Serve static files
 app.use(express.static(path.join(__dirname, "../Client/dist")));
 
 // API Routes
@@ -48,6 +48,11 @@ app.use("/api/v1/users", userController);
 app.use("/api/v1/workouts", workoutController);
 app.use("/api/v1/friends", friendController);
 
+// Handle client-side routing
+app.get("*", (req, res) => {
+  res.sendFile(path.join(__dirname, "../Client/dist/index.html"));
+});
+
 app.listen(PORT, () => {
-  console.log(`Server running at http://localhost:${PORT}`);
+  console.log(`Server running on port ${PORT}`);
 });
