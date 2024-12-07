@@ -1,48 +1,23 @@
-import data from '../data/users.json'
+import { api } from '@/models/myFetch'
+import type { User } from './types'
 import type { DataEnvelope, DataListEnvelope } from './dataEnvelope'
 
-export interface Address {
-  address: string
-  city: string
-  state: string
-  country: string
+export function getAll(): Promise<DataListEnvelope<User>> {
+  return api('users')
 }
 
-export interface User {
-  id: number
-  firstName: string
-  lastName: string
-  age: number
-  birthDate: string
-  gender: string
-  email: string
-  phone: string
-  image: string
-  address: Address
-  username: string
-  password: string
-  ip: string
-  macAddress: string
-  friends: number[]
-  role: string
+export function get(id: string): Promise<DataEnvelope<User>> {
+  return api(`users/${id}`)
 }
 
-export function getAll(): DataListEnvelope<User> {
-  return {
-    data: data.users as User[]
-  }
+export function update(id: string, user: Partial<User>): Promise<DataEnvelope<User>> {
+  return api(`users/${id}`, user, 'PATCH')
 }
 
-export function getById(id: number): DataEnvelope<User | undefined> {
-  const user = data.users.find((u: User) => u.id === id)
-  return {
-    data: user
-  }
+export function create(user: Omit<User, 'id' | 'created_at'>): Promise<DataEnvelope<User>> {
+  return api('users', user)
 }
 
-export function getByUsername(username: string): DataEnvelope<User | undefined> {
-  const user = data.users.find((u: User) => u.username === username)
-  return {
-    data: user
-  }
+export function remove(id: string): Promise<DataEnvelope<{ message: string }>> {
+  return api(`users/${id}`, null, 'DELETE')
 }

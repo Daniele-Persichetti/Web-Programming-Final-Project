@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import { ref, onMounted, computed, watch, inject, type Ref } from 'vue'
-import { getAll, newWorkout, type Workout } from '@/models/workout'
+import { getByUserId, create, update, remove } from '@/models/workout'
 import WorkoutCard from '@/components/WorkoutCard.vue'
-import type { User } from '@/models/users'
+import type { User, Workout } from '@/models/types'
 import WorkoutEdit from '@/components/WorkoutEdit.vue'
 
 const currentUser = inject<Ref<User | null>>('currentUser')!
@@ -16,7 +16,16 @@ interface WorkoutStats {
 }
 
 // Form data
-const formData = ref<Workout>(newWorkout(currentUser.value?.id || 0))
+const formData = ref<Omit<Workout, 'id'>>({
+  userid: currentUser.value?.id || '',  
+  type: 'Cardio',
+  name: '',
+  workoutdate: new Date().toISOString().split('T')[0],
+  duration: 0,
+  distance: null,
+  calories: null,
+  comment: null
+})
 
 const todayStats = ref<WorkoutStats>({
   mostCommonType: '',
@@ -48,7 +57,6 @@ const totalUserWorkouts = ref(0)
 const showEditModal = ref(false)
 const workoutToEdit = ref<Workout | null>(null)
 
-// Function to calculate the stats
 function calculateStats(workouts: Workout[]): WorkoutStats {
   if (workouts.length === 0) {
     return {
@@ -68,8 +76,8 @@ function calculateStats(workouts: Workout[]): WorkoutStats {
   workouts.forEach((workout) => {
     typeCount[workout.type] = (typeCount[workout.type] || 0) + 1
     totalDuration += workout.duration
-    totalDistance += workout.distance
-    totalCalories += workout.calories
+    totalDistance += workout.distance || 0
+    totalCalories += workout.calories || 0
   })
 
   const mostCommonType = Object.entries(typeCount).reduce((a, b) => (a[1] > b[1] ? a : b))[0]
@@ -83,23 +91,21 @@ function calculateStats(workouts: Workout[]): WorkoutStats {
   }
 }
 
-// Function to filter workouts by date
 function filterWorkoutsByDate(workouts: Workout[], startDate: Date, endDate: Date): Workout[] {
   return workouts.filter((workout) => {
-    const workoutDate = new Date(workout.date)
+    // Add T00:00:00 to force local timezone interpretation
+    const workoutDate = new Date(workout.workoutdate + 'T00:00:00')
     return workoutDate >= startDate && workoutDate <= endDate
   })
 }
 
-// Function to sort workouts by date
 const recentWorkouts = computed(() => {
   return [...userWorkouts.value]
-    .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
+    .sort((a, b) => new Date(b.workoutdate).getTime() - new Date(a.workoutdate).getTime())
     .slice(0, 3)
 })
 
-// Function to handle form submission
-function handleSubmit(event: Event) {
+async function handleSubmit(event: Event) {
   event.preventDefault()
 
   if (!currentUser.value) {
@@ -107,31 +113,47 @@ function handleSubmit(event: Event) {
     return
   }
 
-  // Create new workout object
-  const newWorkoutData: Workout = {
-    ...formData.value,
-    userId: currentUser.value.id,
-    duration: Number(formData.value.duration),
-    distance: Number(formData.value.distance),
-    calories: Number(formData.value.calories)
+  try {
+    const newWorkoutData = {
+      userid: currentUser.value.id,
+      type: formData.value.type,
+      name: formData.value.name,
+      workoutdate: formData.value.workoutdate,
+      duration: formData.value.duration,
+      distance: formData.value.distance || null,
+      calories: formData.value.calories || null,
+      comment: formData.value.comment || null
+    }
+
+    const response = await create(newWorkoutData)
+    if (!response.error) {
+      userWorkouts.value.unshift(response.data)
+      totalUserWorkouts.value++
+      updateStats()
+      formData.value = {
+        userid: currentUser.value.id,
+        type: 'Cardio',
+        name: '',
+        workoutdate: new Date().toISOString(),
+        duration: 0,
+        distance: null,
+        calories: null,
+        comment: null
+      }
+    }
+  } catch (error) {
+    console.error('Error creating workout:', error)
   }
-
-  // Add to workouts array
-  userWorkouts.value.unshift(newWorkoutData)
-  totalUserWorkouts.value++
-
-  // Recalculate stats
-  updateStats()
-
-  // Reset form
-  formData.value = newWorkout(currentUser.value.id)
 }
 
-// Function to update all stats
 function updateStats() {
   const now = new Date()
+  // Set to start of day in local timezone
   const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate())
   const weekStart = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 7)
+
+  // Force end of day for the current date to include all of today's workouts
+  now.setHours(23, 59, 59, 999)
 
   const todayWorkouts = filterWorkoutsByDate(userWorkouts.value, todayStart, now)
   const weekWorkouts = filterWorkoutsByDate(userWorkouts.value, weekStart, now)
@@ -141,19 +163,19 @@ function updateStats() {
   allTimeStats.value = calculateStats(userWorkouts.value)
 }
 
-// Function to load user workouts
-function loadUserWorkouts() {
+async function loadUserWorkouts() {
   if (!currentUser.value) return
 
-  const result = getAll()
-  if (result.error) {
-    console.error('Error fetching workouts:', result.error)
-    return
+  try {
+    const response = await getByUserId(currentUser.value.id)
+    if (!response.error) {
+      userWorkouts.value = response.data
+      totalUserWorkouts.value = userWorkouts.value.length
+      updateStats()
+    }
+  } catch (error) {
+    console.error('Error fetching workouts:', error)
   }
-
-  userWorkouts.value = result.data.filter((workout) => workout.userId === currentUser.value?.id)
-  totalUserWorkouts.value = userWorkouts.value.length
-  updateStats()
 }
 
 function handleEditWorkout(workout: Workout) {
@@ -161,40 +183,47 @@ function handleEditWorkout(workout: Workout) {
   showEditModal.value = true
 }
 
-// Function to handle delete request
-function handleDeleteWorkout(workout: Workout) {
+async function handleDeleteWorkout(workout: Workout) {
   if (confirm('Are you sure you want to delete this workout?')) {
-    userWorkouts.value = userWorkouts.value.filter(
-      (w) => !(w.userId === workout.userId && w.date === workout.date && w.name === workout.name)
-    )
-    totalUserWorkouts.value--
-    updateStats()
-  }
-}
-
-// Function to handle saving the edits
-function handleSaveEdit(updatedWorkout: Workout) {
-  const index = userWorkouts.value.findIndex(
-    (w) =>
-      w.userId === workoutToEdit.value?.userId &&
-      w.date.getTime() === workoutToEdit.value?.date.getTime() &&
-      w.name === workoutToEdit.value?.name
-  )
-
-  if (index !== -1) {
-    // Ensure we're working with Date objects
-    userWorkouts.value[index] = {
-      ...updatedWorkout,
-      date: new Date(updatedWorkout.date)
+    try {
+      const response = await remove(workout.id)
+      if (!response.error) {
+        userWorkouts.value = userWorkouts.value.filter(w => w.id !== workout.id)
+        totalUserWorkouts.value--
+        updateStats()
+      }
+    } catch (error) {
+      console.error('Error deleting workout:', error)
     }
-    updateStats()
   }
-
-  showEditModal.value = false
-  workoutToEdit.value = null
 }
 
-// Watch for changes in current user
+async function handleSaveEdit(updatedWorkout: Workout) {
+  try {
+    const response = await update(updatedWorkout.id, {
+      type: updatedWorkout.type,
+      name: updatedWorkout.name,
+      workoutdate: updatedWorkout.workoutdate,
+      duration: updatedWorkout.duration,
+      distance: updatedWorkout.distance,
+      calories: updatedWorkout.calories,
+      comment: updatedWorkout.comment
+    })
+    
+    if (!response.error) {
+      const index = userWorkouts.value.findIndex(w => w.id === updatedWorkout.id)
+      if (index !== -1) {
+        userWorkouts.value[index] = response.data
+        updateStats()
+      }
+    }
+    showEditModal.value = false
+    workoutToEdit.value = null
+  } catch (error) {
+    console.error('Error updating workout:', error)
+  }
+}
+
 watch(
   () => currentUser.value,
   () => {
@@ -211,9 +240,7 @@ onMounted(() => {
   <main>
     <div id="dashboard-content" class="content">
       <h1>Dashboard</h1>
-      <!-- First Section: Workout Statistics Chart -->
       <div id="stats-overview" class="stats-overview">
-        <!-- Three Columns for Daily, Weekly, and All Time Stats -->
         <div class="stats-box" id="today-stats">
           <h3 class="stats-title">Today</h3>
           <p class="stats-item">Most common type of Workout: {{ todayStats.mostCommonType }}</p>
@@ -236,20 +263,19 @@ onMounted(() => {
           <p class="stats-item">Calories Burnt: {{ allTimeStats.totalCalories }} kcal</p>
         </div>
       </div>
-      <!-- Second Section: Two Columns -->
+
       <div class="two-columns">
-        <!-- First Column: My Activity -->
         <div class="left-column">
           <h2 class="section-title">My Recent Activity</h2>
           <WorkoutCard
             v-for="workout in recentWorkouts"
-            :key="`${workout.date}-${workout.userId}`"
+            :key="workout.id"
             :workout="workout"
             @edit-workout="handleEditWorkout"
             @delete-workout="handleDeleteWorkout"
           />
         </div>
-        <!-- Second Column: Add Workout Form -->
+
         <div class="right-column">
           <h2 class="section-title">Add a New Workout</h2>
           <form id="add-workout-form" class="form" @submit="handleSubmit">
@@ -274,8 +300,8 @@ onMounted(() => {
             <input
               type="date"
               id="workout-date"
-              :value="formData.date.toISOString().split('T')[0]"
-              @input="(e) => (formData.date = new Date((e.target as HTMLInputElement).value))"
+              :value="formData.workoutdate.split('T')[0]"
+              @input="(e) => (formData.workoutdate = new Date((e.target as HTMLInputElement).value).toISOString())"
               class="form-input"
               required
             />
@@ -319,6 +345,7 @@ onMounted(() => {
         </div>
       </div>
     </div>
+
     <WorkoutEdit
       :show="showEditModal"
       :workout="workoutToEdit"

@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref, watch } from 'vue'
-import type { Workout } from '@/models/workout'
+import type { Workout } from '@/models/types'
 
 const props = defineProps<{
   show: boolean
@@ -13,62 +13,47 @@ const emit = defineEmits<{
 }>()
 
 const formData = ref<Workout>({
-  userId: 0,
+  id: '',
+  userid: '',
   type: 'Cardio',
   name: '',
-  date: new Date(),
+  workoutdate: '',  
   duration: 0,
-  distance: 0,
-  calories: 0,
-  comment: ''
+  distance: null,
+  calories: null,
+  comment: null
 })
 
-// Helper function to adjust date for timezone
-function adjustDateToLocal(date: Date): string {
-  const timezoneOffset = date.getTimezoneOffset() * 60000
-  const adjustedDate = new Date(date.getTime() + timezoneOffset)
-  return adjustedDate.toISOString().split('T')[0]
-}
-
-// Helper function to create Date without timezone issues
-function createDateFromLocal(dateString: string): Date {
-  const [year, month, day] = dateString.split('-').map(Number)
-  return new Date(year, month - 1, day)
-}
-
-// Watch for changes in workout prop to update form data
 watch(
   () => props.workout,
   (newWorkout) => {
     if (newWorkout) {
-      // Ensure we're working with a proper Date object
-      const workoutDate = new Date(newWorkout.date)
-      formData.value = {
-        ...newWorkout,
-        date: new Date(workoutDate.getFullYear(), workoutDate.getMonth(), workoutDate.getDate())
-      }
+      formData.value = { ...newWorkout }
     }
   },
   { immediate: true }
 )
 
-function handleSubmit(event: Event) {
+// Function to format date for input
+function formatDateForInput(date: string): string {
+  return date.split('T')[0]
+}
+
+// Function to handle date input changes
+function handleDateChange(e: Event) {
+  const target = e.target as HTMLInputElement
+  formData.value.workoutdate = target.value
+}
+
+async function handleSubmit(event: Event) {
   event.preventDefault()
+  if (!props.workout) return
 
-  // Create the workout object with proper date handling
-  const submittedWorkout: Workout = {
-    ...formData.value,
-    duration: Number(formData.value.duration),
-    distance: Number(formData.value.distance),
-    calories: Number(formData.value.calories),
-    date: new Date(
-      formData.value.date.getFullYear(),
-      formData.value.date.getMonth(),
-      formData.value.date.getDate()
-    )
+  try {
+    emit('save', formData.value)
+  } catch (error) {
+    console.error('Error updating workout:', error)
   }
-
-  emit('save', submittedWorkout)
 }
 </script>
 
@@ -77,7 +62,7 @@ function handleSubmit(event: Event) {
     <div class="modal-content">
       <div class="modal-header">
         <h2>Edit Workout</h2>
-        <button type="button" class="close-button" @click="emit('close')">×</button>
+        <button class="close-button" @click="emit('close')">×</button>
       </div>
 
       <form @submit="handleSubmit" class="edit-form">
@@ -96,10 +81,8 @@ function handleSubmit(event: Event) {
         <input
           type="date"
           id="edit-date"
-          :value="adjustDateToLocal(formData.date)"
-          @input="
-            (e) => (formData.date = createDateFromLocal((e.target as HTMLInputElement).value))
-          "
+          :value="formatDateForInput(formData.workoutdate)"
+          @input="handleDateChange"
           class="form-input"
           required
         />
@@ -123,7 +106,12 @@ function handleSubmit(event: Event) {
         />
 
         <label for="edit-calories" class="form-label">Calories Burned:</label>
-        <input type="number" id="edit-calories" v-model="formData.calories" class="form-input" />
+        <input
+          type="number"
+          id="edit-calories"
+          v-model="formData.calories"
+          class="form-input"
+        />
 
         <label for="edit-notes" class="form-label">Additional Notes:</label>
         <textarea

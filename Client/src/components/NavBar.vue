@@ -1,44 +1,24 @@
 <script setup lang="ts">
-import { ref, computed, onMounted, onUnmounted } from 'vue'
+import { ref, computed, onMounted, onUnmounted, inject, type Ref, watch } from 'vue'
 import { RouterLink, useRouter } from 'vue-router'
-import { getAll, type User } from '@/models/users'
+import type { User } from '@/models/types'
+import LoginModal from './LoginModal.vue'
+import { logout } from '@/models/auth'
+
+
 
 const router = useRouter()
-const emit = defineEmits<{
-  'user-selected': [user: User | null]
-}>()
+const currentUser = inject<Ref<User | null>>('currentUser')!
+const showLoginModal = inject<Ref<boolean>>('showLoginModal')!
 
 const isOpen = ref(false)
-const isUserDropdownOpen = ref(false)
 const isAdminDropdownOpen = ref(false)
 const adminDropdownRef = ref<HTMLElement | null>(null)
 
-// Get all users for the dropdown
-const users = ref<User[]>(getAll().data)
-const userDropdownRef = ref<HTMLElement | null>(null)
-
-const currentUser = ref<User | null>(null)
-const isLoggedIn = ref(false)
 const isAdmin = computed(() => currentUser.value?.role === 'admin')
 
-const login = async (user: User) => {
-  currentUser.value = user
-  isLoggedIn.value = true
-  isUserDropdownOpen.value = false
-  emit('user-selected', user)
-  // Navigate to dashboard after login
-  await router.push('/dashboard')
-}
 
-const logout = async () => {
-  currentUser.value = null
-  isLoggedIn.value = false
-  emit('user-selected', null)
-  // Navigate to home page after logout
-  await router.push('/')
-}
-
-// Handle clicks outside of dropdowns
+// Handle clicks outside of admin dropdown
 const handleClickOutside = (event: MouseEvent) => {
   if (
     adminDropdownRef.value &&
@@ -47,16 +27,19 @@ const handleClickOutside = (event: MouseEvent) => {
   ) {
     isAdminDropdownOpen.value = false
   }
-  if (
-    userDropdownRef.value &&
-    !userDropdownRef.value.contains(event.target as Node) &&
-    isUserDropdownOpen.value
-  ) {
-    isUserDropdownOpen.value = false
+}
+
+const handleLogout = async () => {
+  try {
+    await logout()
+    currentUser.value = null
+    localStorage.removeItem('userId')
+    await router.push('/')
+  } catch (error) {
+    console.error('Error during logout:', error)
   }
 }
 
-// Add and remove event listeners
 onMounted(() => {
   document.addEventListener('click', handleClickOutside)
 })
@@ -64,17 +47,24 @@ onMounted(() => {
 onUnmounted(() => {
   document.removeEventListener('click', handleClickOutside)
 })
+
+watch(() => currentUser.value, (newUser) => {
+  console.log('NavBar currentUser update:', {
+    id: newUser?.id,
+    name: newUser ? `${newUser.firstname} ${newUser.lastname}` : 'none'
+  });
+}, { immediate: true, deep: true });
 </script>
 
 <template>
   <nav class="navbar is-link" role="navigation" aria-label="main navigation">
     <div class="container">
+      <!-- Brand/Logo -->
       <div class="navbar-brand">
-        <RouterLink v-if="!isLoggedIn" to="/" class="navbar-item">
+        <RouterLink v-if="!currentUser" to="/" class="navbar-item">
           <img alt="Vue logo" class="logo" src="@/assets/logo.svg" width="30" height="30" />
         </RouterLink>
-        <a
-          role="button"
+        <button
           class="navbar-burger"
           aria-label="menu"
           aria-expanded="false"
@@ -84,64 +74,51 @@ onUnmounted(() => {
           <span aria-hidden="true"></span>
           <span aria-hidden="true"></span>
           <span aria-hidden="true"></span>
-        </a>
+        </button>
       </div>
 
+      <!-- Navigation Menu -->
       <div class="navbar-menu" :class="{ 'is-active': isOpen }">
         <div class="navbar-start">
-          <RouterLink v-if="isLoggedIn" to="/dashboard" class="navbar-item">Dashboard</RouterLink>
-          <RouterLink v-if="isLoggedIn" to="/social" class="navbar-item">Social</RouterLink>
-          <RouterLink v-if="isLoggedIn" to="/profile" class="navbar-item">My Profile</RouterLink>
+          <RouterLink v-if="currentUser" to="/dashboard" class="navbar-item">Dashboard</RouterLink>
+          <RouterLink v-if="currentUser" to="/social" class="navbar-item">Social</RouterLink>
+          <RouterLink v-if="currentUser" to="/profile" class="navbar-item">My Profile</RouterLink>
         </div>
 
         <div class="navbar-end">
-          <!-- User Management Section -->
           <div class="navbar-item">
             <div class="buttons">
-              <!--Sign Up-->
-              <div v-if="!isLoggedIn" class="navbar-item">
-                <a class="button is-primary mr-2">
+              <!-- Login/Signup buttons when not logged in -->
+              <template v-if="!currentUser">
+                <button class="button is-primary mr-2">
                   <strong>Sign Up</strong>
-                </a>
-              </div>
-              <!-- Login Dropdown -->
-              <div
-                v-if="!isLoggedIn"
-                class="navbar-item has-dropdown"
-                :class="{ 'is-active': isUserDropdownOpen }"
-                ref="userDropdownRef"
-              >
-                <a class="button is-light" @click="isUserDropdownOpen = !isUserDropdownOpen">
+                </button>
+                <button class="button is-light" @click="showLoginModal = true">
                   Login
-                </a>
-                <div class="navbar-dropdown">
-                  <a v-for="user in users" :key="user.id" class="navbar-item" @click="login(user)">
-                    {{ user.firstName }} {{ user.lastName }}
-                  </a>
-                </div>
-              </div>
+                </button>
+              </template>
 
-              <!-- Logged in user info -->
+              <!-- User info when logged in -->
               <div v-else class="is-flex is-align-items-center">
                 <span class="mr-2 has-text-white">
-                  Welcome, {{ currentUser?.firstName }} {{ currentUser?.lastName }}
+                  Welcome, {{ currentUser.firstname }} {{ currentUser.lastname }}
                 </span>
-                <a class="button is-light" @click="logout"> Log out </a>
+                <button class="button is-light" @click="handleLogout">Log out</button>
               </div>
 
-              <!-- Admin Dropdown -->
+              <!-- Admin section -->
               <div
-                v-if="isLoggedIn && isAdmin"
+                v-if="currentUser && isAdmin"
                 class="navbar-item has-dropdown ml-2"
                 :class="{ 'is-active': isAdminDropdownOpen }"
                 ref="adminDropdownRef"
               >
-                <a
+                <button
                   class="button is-warning"
                   @click.stop="isAdminDropdownOpen = !isAdminDropdownOpen"
                 >
                   Admin
-                </a>
+                </button>
                 <div class="navbar-dropdown">
                   <RouterLink to="/admin" class="navbar-item" @click="isAdminDropdownOpen = false">
                     Users
@@ -154,6 +131,9 @@ onUnmounted(() => {
       </div>
     </div>
   </nav>
+
+  <!-- Login Modal -->
+  <LoginModal v-if="showLoginModal" />
 </template>
 
 <style scoped>

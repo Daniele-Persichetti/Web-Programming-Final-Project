@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { inject, type Ref } from 'vue'
-import type { User } from '@/models/users'
+import type { User } from '@/models/types'
 
 const currentUser = inject<Ref<User | null>>('currentUser')!
 </script>
@@ -15,14 +15,14 @@ const currentUser = inject<Ref<User | null>>('currentUser')!
         <div class="left-column">
           <!-- User Info Card -->
           <div class="user-info-card" v-if="currentUser">
-            <img :src="currentUser.image" :alt="currentUser.firstName" class="user-avatar" />
-            <h2 class="user-name">{{ currentUser.firstName }} {{ currentUser.lastName }}</h2>
+            <img :src="currentUser.image" :alt="currentUser.firstname" class="user-avatar" />
+            <h2 class="user-name">{{ currentUser.firstname }} {{ currentUser.lastname }}</h2>
             <p class="user-role">
               {{ currentUser.role === 'admin' ? 'Administrator' : 'Fitness Enthusiast' }}
             </p>
             <p class="user-location">
-              {{ currentUser.address.city }}, {{ currentUser.address.state }},
-              {{ currentUser.address.country }}
+              {{ currentUser.city }}, {{ currentUser.state }},
+              {{ currentUser.country }}
             </p>
             <div class="user-actions"></div>
           </div>
@@ -59,18 +59,18 @@ const currentUser = inject<Ref<User | null>>('currentUser')!
           <div class="contact-details-card" v-if="currentUser">
             <h3>Profile Information</h3>
             <p>
-              <strong>Full Name:</strong> {{ currentUser.firstName }} {{ currentUser.lastName }}
+              <strong>Full Name:</strong> {{ currentUser.firstname }} {{ currentUser.lastname }}
             </p>
             <p><strong>Email:</strong> {{ currentUser.email }}</p>
             <p><strong>Phone:</strong> {{ currentUser.phone }}</p>
             <p>
-              <strong>Address:</strong> {{ currentUser.address.address }},
-              {{ currentUser.address.city }}, {{ currentUser.address.state }}
+              <strong>Address:</strong> {{ currentUser.address }},
+              {{ currentUser.city }}, {{ currentUser.state }}
             </p>
-            <p><strong>Date of Birth:</strong> {{ currentUser.birthDate }}</p>
+            <p><strong>Date of Birth:</strong> {{ currentUser.birthdate }}</p>
             <p>
               <strong>Gender:</strong>
-              {{ currentUser.gender.charAt(0).toUpperCase() + currentUser.gender.slice(1) }}
+              {{ currentUser.gender!.charAt(0).toUpperCase() + currentUser.gender!.slice(1) }}
             </p>
           </div>
           <!-- Achievement Wall -->

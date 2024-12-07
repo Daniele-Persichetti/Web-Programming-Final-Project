@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref, watch } from 'vue'
-import type { User, Address } from '@/models/users'
+import type { User } from '@/models/types'
+import { update } from '@/models/users'
 
 const props = defineProps<{
   show: boolean
@@ -12,67 +13,79 @@ const emit = defineEmits<{
   save: [user: User]
 }>()
 
-// Initialize form data with default values
-const formData = ref<{
-  firstName: string
-  lastName: string
+interface UserFormData {
+  id: string
+  firstname: string
+  lastname: string
   email: string
   username: string
-  role: string
-  phone: string
-  age: number
-  gender: string
-  address: Address
-  password: string
-}>({
-  firstName: '',
-  lastName: '',
+  role: string | null
+  phone: string | null
+  age: number | null
+  gender: string | null
+  address: string | null
+  city: string | null
+  state: string | null
+  country: string | null
+  birthdate: string | null
+  image: string | null
+  ip: string | null
+  macaddress: string | null
+}
+
+const formData = ref<UserFormData>({
+  id: '',
+  firstname: '',
+  lastname: '',
   email: '',
   username: '',
   role: 'user',
-  phone: '',
-  age: 0,
-  gender: 'other',
-  address: {
-    address: '',
-    city: '',
-    state: '',
-    country: ''
-  },
-  password: ''
+  phone: null,
+  age: null,
+  gender: null,
+  address: null,
+  city: null,
+  state: null,
+  country: null,
+  birthdate: null,
+  image: null,
+  ip: null,
+  macaddress: null
 })
 
-// Watch for changes in user prop to update form data
+// Watch for user changes and update form
 watch(
   () => props.user,
   (newUser) => {
     if (newUser) {
       formData.value = {
-        firstName: newUser.firstName,
-        lastName: newUser.lastName,
-        email: newUser.email,
-        username: newUser.username,
-        role: newUser.role,
-        phone: newUser.phone,
-        age: newUser.age,
-        gender: newUser.gender,
-        address: { ...newUser.address },
-        password: newUser.password
+        ...newUser,
+        // Ensure birthDate is properly formatted if it exists
+        birthdate: newUser.birthdate ? new Date(newUser.birthdate).toISOString().split('T')[0] : null
       }
     }
   },
   { immediate: true }
 )
 
-function handleSubmit(event: Event) {
+async function handleSubmit(event: Event) {
   event.preventDefault()
   if (!props.user) return
 
-  emit('save', {
-    ...props.user,
-    ...formData.value,
-    age: Number(formData.value.age)
-  })
+  try {
+    // Convert age to number if it's a string
+    const userData = {
+      ...formData.value,
+      age: formData.value.age ? Number(formData.value.age) : null
+    }
+
+    const response = await update(props.user.id, userData)
+    if (!response.error) {
+      emit('save', response.data)
+    }
+  } catch (error) {
+    console.error('Error updating user:', error)
+  }
 }
 </script>
 
@@ -86,13 +99,13 @@ function handleSubmit(event: Event) {
 
       <form @submit="handleSubmit" class="edit-form">
         <div class="form-group">
-          <label for="edit-firstName">First Name:</label>
-          <input type="text" id="edit-firstName" v-model="formData.firstName" required />
+          <label for="edit-firstname">First Name:</label>
+          <input type="text" id="edit-firstname" v-model="formData.firstname" required />
         </div>
 
         <div class="form-group">
-          <label for="edit-lastName">Last Name:</label>
-          <input type="text" id="edit-lastName" v-model="formData.lastName" required />
+          <label for="edit-lastname">Last Name:</label>
+          <input type="text" id="edit-lastname" v-model="formData.lastname" required />
         </div>
 
         <div class="form-group">
@@ -132,25 +145,29 @@ function handleSubmit(event: Event) {
           </select>
         </div>
 
-        <h3>Address</h3>
         <div class="form-group">
-          <label for="edit-street">Street:</label>
-          <input type="text" id="edit-street" v-model="formData.address.address" />
+          <label for="edit-birthdate">Birth Date:</label>
+          <input type="date" id="edit-birthdate" v-model="formData.birthdate" />
+        </div>
+
+        <div class="form-group">
+          <label for="edit-address">Address:</label>
+          <input type="text" id="edit-address" v-model="formData.address" />
         </div>
 
         <div class="form-group">
           <label for="edit-city">City:</label>
-          <input type="text" id="edit-city" v-model="formData.address.city" />
+          <input type="text" id="edit-city" v-model="formData.city" />
         </div>
 
         <div class="form-group">
           <label for="edit-state">State:</label>
-          <input type="text" id="edit-state" v-model="formData.address.state" />
+          <input type="text" id="edit-state" v-model="formData.state" />
         </div>
 
         <div class="form-group">
           <label for="edit-country">Country:</label>
-          <input type="text" id="edit-country" v-model="formData.address.country" />
+          <input type="text" id="edit-country" v-model="formData.country" />
         </div>
 
         <div class="modal-actions">

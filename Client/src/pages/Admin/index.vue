@@ -1,94 +1,144 @@
 <script setup lang="ts">
-import { ref, inject, type Ref } from 'vue'
-import { getAll, type User, type Address } from '@/models/users'
+import { ref, inject, type Ref, onMounted } from 'vue'
+import { getAll } from '@/models/users'
+import { type User } from '@/models/types'
 import UserEdit from '@/components/UserEdit.vue'
+import { api } from '@/models/myFetch';
+import type { DataEnvelope } from '@/models/dataEnvelope';
+
 
 const currentUser = inject<Ref<User | null>>('currentUser')!
 
 const showAddModal = ref(false)
 const showEditModal = ref(false)
-const users = ref<User[]>(getAll().data)
+const users = ref<User[]>()
 const editingUser = ref<User | null>(null)
 
-// Form data structure for add user only
+async function fetchUsers() {
+  try {
+    const response = await getAll();
+    if (response.error) {
+      console.error('Error fetching users:', response.error);
+      return;
+    }
+    users.value = response.data;
+  } catch (error) {
+    console.error('Error fetching users:', error);
+  }
+}
+
+
+// Form data structure for add user from admin page with less fields
 interface UserFormData {
-  firstName: string
-  lastName: string
+  firstname: string
+  lastname: string
   email: string
   username: string
   role: string
   phone: string
   age: number
   gender: string
-  address: Address
+  address: string
+  city: string
+  state: string
+  country: string
   password: string
 }
 
 // Initialize empty form data
 const formData = ref<UserFormData>({
-  firstName: '',
-  lastName: '',
+  firstname: '',
+  lastname: '',
   email: '',
   username: '',
   role: 'user',
   phone: '',
   age: 0,
   gender: 'other',
-  address: {
-    address: '',
-    city: '',
-    state: '',
-    country: ''
-  },
+  address: '',
+  city: '',
+  state: '',
+  country: '',
   password: ''
 })
 
 // Function to reset form data
 function resetFormData() {
   formData.value = {
-    firstName: '',
-    lastName: '',
+    firstname: '',
+    lastname: '',
     email: '',
     username: '',
     role: 'user',
     phone: '',
     age: 0,
     gender: 'other',
-    address: {
       address: '',
       city: '',
       state: '',
-      country: ''
-    },
+      country: '',
+    
     password: ''
   }
 }
 
 // Function to handle adding a new user
-function handleAddUser() {
-  const newId = Math.max(...users.value.map((u) => u.id)) + 1
-  const newUser: User = {
-    id: newId,
-    firstName: formData.value.firstName,
-    lastName: formData.value.lastName,
-    email: formData.value.email,
-    username: formData.value.username,
-    role: formData.value.role,
-    phone: formData.value.phone,
-    age: formData.value.age,
-    gender: formData.value.gender,
-    address: formData.value.address,
-    password: formData.value.password,
-    birthDate: new Date().toLocaleDateString(), // Default to current date
-    image: 'https://dummyjson.com/icon/user/128', // Default image
-    ip: '0.0.0.0', // Default IP
-    macAddress: '00:00:00:00:00:00', // Default MAC
-    friends: [] // Fixed: Empty array for friends list
-  }
+async function handleAddUser() {
+  try {
+    // Only send the fields that are required for initial user creation
+    const payload = {
+      email: formData.value.email,
+      password: formData.value.password,
+      firstname: formData.value.firstname,
+      lastname: formData.value.lastname,
+      username: formData.value.username,
+      role: formData.value.role || 'user'
+    };
 
-  users.value.push(newUser)
-  showAddModal.value = false
-  resetFormData()
+    console.log('Sending registration payload:', payload);
+
+    const response = await api<DataEnvelope<User>>('auth/register', payload);
+    console.log('Registration response:', response);
+
+    if (response.error) {
+      alert(response.error);
+      return;
+    }
+
+    // If successful, update the optional fields separately
+    if (response.data?.id) {
+      const additionalData = {
+        phone: formData.value.phone || null,
+        age: formData.value.age || null,
+        gender: formData.value.gender || null,
+        address: formData.value.address || null,
+        city: formData.value.city || null,
+        state: formData.value.state || null,
+        country: formData.value.country || null,
+        image: 'https://dummyjson.com/icon/user/128',
+        ip: '0.0.0.0',
+        macaddress: '00:00:00:00:00:00'
+      };
+
+      // Update the user with additional data
+      const updateResponse = await api<DataEnvelope<User>>(
+        `users/${response.data.id}`, 
+        additionalData, 
+        'PATCH'
+      );
+
+      if (updateResponse.error) {
+        console.error('Error updating additional user data:', updateResponse.error);
+      }
+    }
+
+    await fetchUsers();
+    showAddModal.value = false;
+    resetFormData();
+  } catch (error) {
+    console.error('Error adding user:', error);
+    alert('Failed to add user');
+  }
 }
 
 // Function to handle editing a user
@@ -97,28 +147,55 @@ function handleEditUser(user: User) {
   showEditModal.value = true
 }
 
-// Function to save edited user
-function handleSaveEdit(updatedUser: User) {
-  const index = users.value.findIndex((u) => u.id === updatedUser.id)
-  if (index !== -1) {
-    users.value[index] = updatedUser
+
+async function handleSaveEdit(updatedUser: User) {
+  try {
+    const response = await api<DataEnvelope<User>>(`users/${updatedUser.id}`, updatedUser, 'PATCH');
+    if (response.error) {
+      alert(response.error);
+      return;
+    }
+    await fetchUsers();
+    showEditModal.value = false;
+    editingUser.value = null;
+  } catch (error) {
+    console.error('Error updating user:', error);
+    alert('Failed to update user');
   }
-  showEditModal.value = false
-  editingUser.value = null
 }
 
 // Function to handle deleting a user
-function handleDeleteUser(user: User) {
-  // Add check to prevent deleting self
+async function handleDeleteUser(user: User) {
   if (user.id === currentUser.value?.id) {
-    alert('You cannot delete your own account!')
-    return
+    alert('You cannot delete your own account!');
+    return;
   }
 
-  if (confirm(`Are you sure you want to delete user ${user.firstName} ${user.lastName}?`)) {
-    users.value = users.value.filter((u) => u.id !== user.id)
+  if (confirm(`Are you sure you want to delete user ${user.firstname} ${user.lastname}?`)) {
+    try {
+      // First delete from auth - note that the endpoint is "auth/delete/:id"
+      const authResponse = await api<DataEnvelope<{ message: string }>>(`auth/delete/${user.id}`, null, 'DELETE');
+      if (authResponse.error) {
+        console.error('Error deleting auth user:', authResponse.error);
+      }
+
+      // Then delete from users table
+      const response = await api<DataEnvelope<{ message: string }>>(`users/${user.id}`, null, 'DELETE');
+      if (response.error) {
+        alert(response.error);
+        return;
+      }
+      
+      await fetchUsers(); // Refresh user list
+    } catch (error) {
+      console.error('Error deleting user:', error);
+      alert('Failed to delete user completely. The user might be partially deleted.');
+    }
   }
 }
+
+onMounted(fetchUsers);
+
 </script>
 
 <template>
@@ -145,9 +222,9 @@ function handleDeleteUser(user: User) {
       </thead>
       <tbody>
         <tr v-for="user in users" :key="user.id">
-          <td><img :src="user.image" :alt="user.firstName" class="user-photo" /></td>
-          <td>{{ user.firstName }}</td>
-          <td>{{ user.lastName }}</td>
+          <td><img :src="user.image" :alt="user.firstname" class="user-photo" /></td>
+          <td>{{ user.firstname }}</td>
+          <td>{{ user.lastname }}</td>
           <td>{{ user.email }}</td>
           <td>{{ user.username }}</td>
           <td>{{ user.role }}</td>
@@ -170,11 +247,11 @@ function handleDeleteUser(user: User) {
         <form @submit.prevent="handleAddUser" class="user-form">
           <div class="form-group">
             <label>First Name:</label>
-            <input v-model="formData.firstName" required />
+            <input v-model="formData.firstname" required />
           </div>
           <div class="form-group">
             <label>Last Name:</label>
-            <input v-model="formData.lastName" required />
+            <input v-model="formData.lastname" required />
           </div>
           <div class="form-group">
             <label>Email:</label>
@@ -214,25 +291,25 @@ function handleDeleteUser(user: User) {
           <h3>Address</h3>
           <div class="form-group">
             <label>Street:</label>
-            <input v-model="formData.address.address" />
+            <input v-model="formData.address" />
           </div>
           <div class="form-group">
             <label>City:</label>
-            <input v-model="formData.address.city" />
+            <input v-model="formData.city" />
           </div>
           <div class="form-group">
             <label>State:</label>
-            <input v-model="formData.address.state" />
+            <input v-model="formData.state" />
           </div>
           <div class="form-group">
             <label>Country:</label>
-            <input v-model="formData.address.country" />
+            <input v-model="formData.country" />
           </div>
           <div class="form-actions">
-            <button type="submit" class="submit-button">Add User</button>
             <button type="button" @click="showAddModal = false" class="cancel-button">
               Cancel
             </button>
+            <button type="submit" class="submit-button">Add User</button>
           </div>
         </form>
       </div>

@@ -1,26 +1,24 @@
 <script setup lang="ts">
-import type { Workout } from '@/models/workout'
-import type { User } from '@/models/users'
+import type { Workout, User } from '@/models/types'
 
 const props = defineProps<{
   workout: Workout
   user: User
 }>()
 
-function formatDate(date: Date): string {
+function formatDate(workoutDate: string): string {
+  const date = new Date(workoutDate + 'T00:00:00')
   return date.toLocaleDateString()
 }
 </script>
 
 <template>
   <div class="activity-blurb">
-    <!-- User Image and Info Section -->
     <div class="user-section">
-      <img :src="user.image" :alt="user.firstName" class="user-img" />
-      <div class="user-name">{{ user.firstName }} {{ user.lastName }}</div>
+      <img :src="user.image" :alt="user.firstname" class="user-img" />
+      <div class="user-name">{{ user.firstname }} {{ user.lastname }}</div>
     </div>
 
-    <!-- Workout Info Section -->
     <div class="workout-info">
       <div class="workout-header">
         <h3 class="workout-title">{{ workout.name }}</h3>
@@ -33,7 +31,7 @@ function formatDate(date: Date): string {
         </li>
         <li>
           <i class="fas fa-calendar"></i>
-          Date: {{ formatDate(workout.date) }}
+          Date: {{ formatDate(workout.workoutdate) }}
         </li>
         <li>
           <i class="fas fa-clock"></i>
@@ -41,7 +39,7 @@ function formatDate(date: Date): string {
         </li>
         <li v-if="workout.type === 'Cardio'">
           <i class="fas fa-road"></i>
-          Distance: {{ workout.distance.toFixed(2) }} km
+          Distance: {{ workout.distance?.toFixed(2) }} km
         </li>
         <li>
           <i class="fas fa-fire"></i>

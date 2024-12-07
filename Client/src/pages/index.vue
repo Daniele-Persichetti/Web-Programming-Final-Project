@@ -12,33 +12,6 @@
     <p class="welcome-subtext">
       Start your fitness journey, set your goals, and connect with friends.
     </p>
-    <!-- Three-Column Section -->
-    <div id="welcome-sections" class="three-columns">
-      <!-- First Column: Profile Setup -->
-      <div class="column">
-        <h2 class="column-title">[WIP] Set Up Your Profile</h2>
-        <p class="column-description">
-          Personalize your account to get started with tracking your progress.
-        </p>
-        <button class="cta-button">Set Up Your Profile</button>
-      </div>
-      <!-- Second Column: Add First Workout -->
-      <div class="column">
-        <h2 class="column-title">[WIP] Add Your First Workout</h2>
-        <p class="column-description">
-          Begin tracking your exercises and watch your progress grow over time.
-        </p>
-        <button class="cta-button">Start to Track Your Progress</button>
-      </div>
-      <!-- Third Column: Invite Friends -->
-      <div class="column">
-        <h2 class="column-title">[WIP] Invite Your Friends</h2>
-        <p class="column-description">
-          Bring your friends along for the journey and stay motivated together.
-        </p>
-        <button class="cta-button">Invite Your Friends</button>
-      </div>
-    </div>
   </main>
 </template>
 

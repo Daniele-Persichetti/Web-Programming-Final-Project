@@ -1,35 +1,36 @@
-import data from '../data/workout.json'
-import type { DataListEnvelope } from './dataEnvelope'
+import { api } from '@/models/myFetch'
+import type { Workout } from './types'
+import type { DataEnvelope, DataListEnvelope } from './dataEnvelope'
 
-export interface Workout {
-  userId: number
-  type: string
-  name: string
-  date: Date
-  duration: number
-  distance: number
-  calories: number
-  comment: string
-}
-
-export function newWorkout(userId: number): Workout {
+export function newWorkout(userid: string): Omit<Workout, 'id'> {
   return {
-    userId,
+    userid: userid,
     type: 'Cardio',
     name: '',
-    date: new Date(),
+    workoutdate: new Date().toISOString(),
     duration: 0,
-    distance: 0,
-    calories: 0,
-    comment: ''
+    distance: null,
+    calories: null,
+    comment: null
   }
 }
 
-export function getAll(): DataListEnvelope<Workout> {
-  return {
-    data: data.workouts.map((x) => ({
-      ...x,
-      date: new Date(x.date)
-    })) as Workout[]
-  }
+export function getAll(): Promise<DataListEnvelope<Workout>> {
+  return api('workouts')
+}
+
+export function getByUserId(userId: string): Promise<DataListEnvelope<Workout>> {
+  return api(`workouts/user/${userId}`)
+}
+
+export function create(workout: Omit<Workout, 'id'>): Promise<DataEnvelope<Workout>> {
+  return api('workouts', workout)
+}
+
+export function update(id: string, workout: Partial<Workout>): Promise<DataEnvelope<Workout>> {
+  return api(`workouts/${id}`, workout, 'PATCH')
+}
+
+export function remove(id: string): Promise<DataEnvelope<{ message: string }>> {
+  return api(`workouts/${id}`, null, 'DELETE')
 }

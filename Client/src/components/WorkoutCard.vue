@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { Workout } from '@/models/workout'
+import type { Workout } from '@/models/types'
 
 const props = defineProps<{
   workout: Workout
@@ -10,8 +10,10 @@ const emit = defineEmits<{
   'delete-workout': [workout: Workout]
 }>()
 
-function formatDate(date: Date): string {
-  return date.toLocaleDateString()
+function formatDate(dateStr: string): string {
+  // Add time to force local timezone interpretation
+  const date = new Date(dateStr + 'T00:00:00');
+  return date.toLocaleDateString();
 }
 
 function getWorkoutIconClass(type: string): string {
@@ -21,7 +23,7 @@ function getWorkoutIconClass(type: string): string {
     case 'strength':
       return 'fas fa-dumbbell'
     case 'flexibility':
-      return 'fas fa-person-running'
+      return 'fas fa-running'
     case 'balance':
       return 'fas fa-scale-balanced'
     default:
@@ -50,9 +52,9 @@ function getWorkoutIconClass(type: string): string {
       <p class="workout-description">{{ workout.comment }}</p>
       <ul class="workout-details">
         <li>Type: {{ workout.type }}</li>
-        <li>Date: {{ formatDate(workout.date) }}</li>
+        <li>Date: {{ formatDate(workout.workoutdate) }}</li>
         <li>Duration: {{ workout.duration }} minutes</li>
-        <li v-if="workout.type === 'Cardio'">Distance: {{ workout.distance.toFixed(2) }} km</li>
+        <li v-if="workout.type === 'Cardio'">Distance: {{ workout.distance ? workout.distance.toFixed(2) : '0' }} km</li>
         <li>Calories Burned: {{ workout.calories }} kcal</li>
       </ul>
     </div>

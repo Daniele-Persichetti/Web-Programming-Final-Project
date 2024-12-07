@@ -1,19 +1,68 @@
 <script setup lang="ts">
-import { ref, provide } from 'vue'
-import type { User } from '@/models/users'
+import { ref, provide, onMounted, watch } from 'vue'
+import type { User } from '@/models/types'
 import NavBar from '@/components/NavBar.vue'
+import LoginModal from '@/components/LoginModal.vue'
+import { verifySession } from '@/models/auth'
+
 
 const currentUser = ref<User | null>(null)
-provide('currentUser', currentUser)
+const showLoginModal = ref(false)
 
-// Handle user selection from NavBar
-function handleUserSelected(user: User | null) {
-  currentUser.value = user
-}
+// Provide both values
+provide('currentUser', currentUser)
+provide('showLoginModal', showLoginModal)
+
+
+// Verify session on app mount
+onMounted(async () => {
+  try {
+    const userId = localStorage.getItem('userId')
+    if (userId) {
+      const response = await verifySession(userId)
+      if (!response.error) {
+        currentUser.value = response.data
+      }
+    }
+  } catch (error) {
+    console.error('Error verifying session:', error)
+  }
+})
+
+// Handle authentication state update
+onMounted(async () => {
+  try {
+    const userId = localStorage.getItem('userId')
+    if (userId) {
+      const response = await verifySession(userId)
+      if (!response.error) {
+        currentUser.value = response.data
+      } else {
+        // Clear invalid session
+        localStorage.removeItem('userId')
+        currentUser.value = null
+      }
+    }
+  } catch (error) {
+    console.error('Error verifying session:', error)
+    localStorage.removeItem('userId')
+    currentUser.value = null
+  }
+})
+
+watch(currentUser, (newUser) => {
+  console.log('Current user changed:', {
+    id: newUser?.id,
+    name: newUser ? `${newUser.firstname} ${newUser.lastname}` : 'none'
+  });
+}, { deep: true });
+
+
 </script>
 
 <template>
-  <NavBar @user-selected="handleUserSelected" />
+  <NavBar />
+  <LoginModal v-if="showLoginModal" />
   <RouterView />
 </template>
 
