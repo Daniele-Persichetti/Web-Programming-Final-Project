@@ -4,10 +4,10 @@ const API_URL = import.meta.env.PROD
 
 export async function rest<T>(url: string, data?: any, method?: string): Promise<T> {
   const controller = new AbortController()
-  const timeoutId = setTimeout(() => controller.abort(), 5000) // 5 second timeout
+  const timeoutId = setTimeout(() => controller.abort(), 10000) // 10 second timeout
 
   try {
-    const response = await fetch(url, {
+    const response = await fetch(API_URL + url, {
       method: method ?? (data ? 'POST' : 'GET'),
       headers: {
         'Content-Type': 'application/json'
@@ -35,10 +35,10 @@ export async function rest<T>(url: string, data?: any, method?: string): Promise
 }
 
 export function api<T>(url: string, data?: any, method?: string): Promise<T> {
-  console.log(`Making ${method || (data ? 'POST' : 'GET')} request to:`, API_URL + url)
+  console.log(`Making ${method || (data ? 'POST' : 'GET')} request to:`, url)
   if (data) console.log('With data:', data)
 
-  return rest<T>(API_URL + url, data, method).catch((error) => {
+  return rest<T>(url, data, method).catch((error) => {
     console.error('API request failed:', error)
     throw error
   })
