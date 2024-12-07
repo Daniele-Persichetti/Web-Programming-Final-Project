@@ -23,7 +23,7 @@ export default defineConfig({
   },
   base: './',
   build: {
-    outDir: '../Client/dist',
+    outDir: '../Server/dist',
     emptyOutDir: true
   }
 })
