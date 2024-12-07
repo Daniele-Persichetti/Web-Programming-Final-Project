@@ -7,7 +7,7 @@ export async function rest<T>(url: string, data?: any, method?: string): Promise
   const timeoutId = setTimeout(() => controller.abort(), 5000) // 5 second timeout
 
   try {
-    const response = await fetch(url, {
+    const response = await fetch(API_URL + url, {
       method: method ?? (data ? 'POST' : 'GET'),
       headers: {
         'Content-Type': 'application/json'
@@ -34,14 +34,16 @@ export async function rest<T>(url: string, data?: any, method?: string): Promise
   }
 }
 
-export function api<T>(url: string, data?: any, method?: string): Promise<T> {
+export async function api<T>(url: string, data?: any, method?: string): Promise<T> {
   console.log(`Making ${method || (data ? 'POST' : 'GET')} request to:`, API_URL + url)
   if (data) console.log('With data:', data)
 
-  return rest<T>(API_URL + url, data, method).catch((error) => {
+  try {
+    return await rest<T>(API_URL + url, data, method)
+  } catch (error) {
     console.error('API request failed:', error)
     throw error
-  })
+  }
 }
 
 export async function loadScript(url: string): Promise<void> {
