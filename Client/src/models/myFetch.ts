@@ -7,11 +7,7 @@ export async function rest<T>(url: string, data?: any, method?: string): Promise
   const timeoutId = setTimeout(() => controller.abort(), 5000) // 5 second timeout
 
   try {
-    const fullUrl = API_URL + url
-    console.log(`Making ${method ?? (data ? 'POST' : 'GET')} request to:`, fullUrl)
-    if (data) console.log('With data:', data)
-
-    const response = await fetch(fullUrl, {
+    const response = await fetch(url, {
       method: method ?? (data ? 'POST' : 'GET'),
       headers: {
         'Content-Type': 'application/json'
@@ -25,7 +21,7 @@ export async function rest<T>(url: string, data?: any, method?: string): Promise
     if (!response.ok) {
       // Try to get error details from response
       const errorData = await response.json().catch(() => null)
-      throw new Error(errorData?.error || `HTTP error!: ${response.status}`)
+      throw new Error(errorData?.error || `HTTP error! status: ${response.status}`)
     }
 
     const result = await response.json()
@@ -42,12 +38,10 @@ export function api<T>(url: string, data?: any, method?: string): Promise<T> {
   console.log(`Making ${method || (data ? 'POST' : 'GET')} request to:`, API_URL + url)
   if (data) console.log('With data:', data)
 
-  try {
-    return rest<T>(API_URL + url, data, method)
-  } catch (error) {
+  return rest<T>(API_URL + url, data, method).catch((error) => {
     console.error('API request failed:', error)
     throw error
-  }
+  })
 }
 
 export async function loadScript(url: string): Promise<void> {
