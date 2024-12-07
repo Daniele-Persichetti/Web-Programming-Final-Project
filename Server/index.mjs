@@ -1,5 +1,4 @@
 import express from "express";
-import cors from "cors";
 import { userController } from "./controllers/users.js";
 import { workoutController } from "./controllers/workouts.js";
 import { friendController } from "./controllers/friends.js";
@@ -16,14 +15,12 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 
 // Cors configuration
-app.use(
-  cors({
-    origin: process.env.PROD
-      ? "*" // Allow all origins in production
-      : "http://localhost:5173",
-    credentials: true,
-  })
-);
+app.use((req, res, next) => {
+  res.header("Access-Control-Allow-Origin", "*");
+  res.header("Access-Control-Allow-Methods", "*");
+  res.header("Access-Control-Allow-Headers", "*");
+  next();
+});
 app.use(express.json());
 
 app.get("/api/current-user", async (_req, res) => {
