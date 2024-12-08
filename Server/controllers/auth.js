@@ -20,12 +20,32 @@ const supabase = createClient(
   }
 );
 
-app.delete("/delete/:id", async (req, res, next) => {
+app.delete("/delete/:id", async (req, res, _next) => {
   try {
     const { id } = req.params;
     console.log("Attempting to delete user:", id);
 
-    // First delete all related records
+    // First check if target user is an admin
+    const { data: targetUser, error: checkError } = await supabase
+      .from("users")
+      .select("role")
+      .eq("id", id)
+      .single();
+
+    if (checkError) {
+      console.error("Error checking user role:", checkError);
+      return res.status(500).json({
+        error: "Error checking user role",
+      });
+    }
+
+    if (targetUser.role === "admin") {
+      return res.status(403).json({
+        error: "Cannot delete Admin User",
+      });
+    }
+
+    // If not admin, proceed with deletion (both here and in database policy)
     // Delete user's workouts
     const { error: workoutsError } = await supabase
       .from("workouts")
