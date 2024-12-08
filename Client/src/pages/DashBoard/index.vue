@@ -301,7 +301,7 @@ onMounted(() => {
               type="date"
               id="workout-date"
               :value="formData.workoutdate.split('T')[0]"
-              @input="(e) => (formData.workoutdate = new Date((e.target as HTMLInputElement).value).toISOString())"
+              @input="(e) => (formData.workoutdate = (e.target as HTMLInputElement).value)"
               class="form-input"
               required
             />

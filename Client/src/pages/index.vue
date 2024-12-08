@@ -29,7 +29,7 @@ body {
 }
 
 h1 {
-  color: #2a5934; /* Elegant green */
+  color: #2a5934; 
   text-align: center;
   font-size: 28px;
   font-weight: 700;
