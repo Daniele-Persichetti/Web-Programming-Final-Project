@@ -3,7 +3,7 @@ import { createClient } from "@supabase/supabase-js";
 
 const app = express.Router();
 
-// Initialize Supabase client with service role key
+// Initialize Supabase
 const supabase = createClient(
   process.env.SUPABASE_URL,
   process.env.SUPABASE_SECRET_KEY,
@@ -12,47 +12,69 @@ const supabase = createClient(
       autoRefreshToken: false,
       persistSession: false,
     },
+    global: {
+      headers: {
+        "x-supabase-role": "service_role",
+      },
+    },
   }
 );
 
-app.delete("/delete/:id", async (req, res) => {
-  console.log("Delete route hit");
-  console.log("Params:", req.params);
-  const userId = req.params.id;
-
+app.delete("/delete/:id", async (req, res, next) => {
   try {
-    // First delete user from the database table
-    const { error: dbError } = await supabase
+    const { id } = req.params;
+    console.log("Attempting to delete user:", id);
+
+    // First delete all related records
+    // Delete user's workouts
+    const { error: workoutsError } = await supabase
+      .from("workouts")
+      .delete()
+      .eq("userid", id);
+
+    if (workoutsError) {
+      console.error("Error deleting workouts:", workoutsError);
+    }
+
+    // Delete friend connections
+    const { error: friendsError } = await supabase
+      .from("friends")
+      .delete()
+      .or(`userid.eq.${id},friendid.eq.${id}`);
+
+    if (friendsError) {
+      console.error("Error deleting friends:", friendsError);
+    }
+
+    // Then delete the user record from users table
+    const { error: userError } = await supabase
       .from("users")
       .delete()
-      .eq("id", userId);
+      .eq("id", id);
 
-    if (dbError) {
-      console.error("Database delete error:", dbError);
+    if (userError) {
+      console.error("Error deleting user record:", userError);
       return res.status(500).json({
-        error: dbError.message,
+        error: userError.message,
       });
     }
 
-    console.log("User deleted from database, now deleting from auth...");
-
-    // Then delete from auth
-    const { error: authError } = await supabase.auth.admin.deleteUser(userId);
+    // Finally delete from auth
+    const { error: authError } = await supabase.auth.admin.deleteUser(id);
 
     if (authError) {
-      console.error("Auth delete error:", authError);
+      console.error("Error deleting auth user:", authError);
       return res.status(500).json({
         error: authError.message,
       });
     }
 
-    console.log("User successfully deleted from both database and auth");
-    return res.json({ data: { message: "User deleted successfully" } });
+    console.log("User successfully deleted");
+    res.json({ data: { message: "User deleted successfully" } });
   } catch (err) {
-    console.error("Unexpected error:", err);
-    return res.status(500).json({
-      error: "Failed to delete user",
-      details: err.message,
+    console.error("Delete user error:", err);
+    res.status(500).json({
+      error: err.message,
     });
   }
 });
@@ -125,57 +147,41 @@ app.post("/register", async (req, res, _next) => {
   try {
     console.log("Registration request received:", req.body);
 
-    // Try to get the table structure first
-    const { data: tableInfo, error: tableError } = await supabase
-      .from("users")
-      .select()
-      .limit(1);
-
-    console.log(
-      "Current table structure:",
-      tableInfo ? Object.keys(tableInfo[0]) : "No data"
-    );
-
     // Create auth user first
-    const authResponse = await supabase.auth.admin.createUser({
+    const {
+      data: { user },
+      error: authError,
+    } = await supabase.auth.admin.createUser({
       email: req.body.email,
       password: req.body.password,
       email_confirm: true,
     });
 
-    if (authResponse.error) {
-      console.error("Auth creation error:", authResponse.error);
+    if (authError) {
+      console.error("Auth creation error:", authError);
       return res.status(400).json({
-        error: authResponse.error.message,
+        error: authError.message,
       });
     }
 
-    console.log("Auth user created successfully:", authResponse.data.user.id);
+    console.log("Auth user created successfully:", user.id);
 
     // Prepare user profile data
     const userProfile = {
-      id: authResponse.data.user.id,
+      id: user.id,
       email: req.body.email,
       firstname: req.body.firstname,
       lastname: req.body.lastname,
       username: req.body.username,
       role: req.body.role || "user",
-      // Optional fields
-      phone: req.body.phone || null,
-      age: req.body.age || null,
-      gender: req.body.gender || null,
-      address: req.body.address || null,
-      city: req.body.city || null,
-      state: req.body.state || null,
-      country: req.body.country || null,
       image: req.body.image || "https://dummyjson.com/icon/user/128",
       ip: req.body.ip || "0.0.0.0",
       macaddress: req.body.macaddress || "00:00:00:00:00:00",
     };
 
-    console.log("Attempting to create user profile with:", userProfile);
+    console.log("Creating user profile with:", userProfile);
 
-    // Try to insert user profile
+    // Create user profile
     const { data: userData, error: userError } = await supabase
       .from("users")
       .insert([userProfile])
@@ -184,31 +190,19 @@ app.post("/register", async (req, res, _next) => {
 
     if (userError) {
       console.error("Profile creation error:", userError);
-      // If profile creation fails, clean up the auth user
-      const { error: cleanupError } = await supabase.auth.admin.deleteUser(
-        authResponse.data.user.id
-      );
-
-      if (cleanupError) {
-        console.error(
-          "Failed to cleanup auth user after profile creation failed:",
-          cleanupError
-        );
-      }
-
+      // Clean up auth user if profile creation fails
+      await supabase.auth.admin.deleteUser(user.id);
       return res.status(500).json({
         error: userError.message,
-        details: userError,
       });
     }
 
     console.log("User profile created successfully:", userData);
     res.status(201).json({ data: userData });
   } catch (err) {
-    console.error("Full registration error:", err);
+    console.error("Registration error:", err);
     res.status(500).json({
-      error: "Registration failed",
-      details: err.message,
+      error: err.message || "Registration failed",
     });
   }
 });

@@ -110,7 +110,7 @@ async function handleAddUser() {
       const additionalData = {
         phone: formData.value.phone || null,
         age: formData.value.age || null,
-        gender: formData.value.gender || null,
+        gender: formData.value.gender || 'other',
         address: formData.value.address || null,
         city: formData.value.city || null,
         state: formData.value.state || null,
@@ -167,29 +167,26 @@ async function handleSaveEdit(updatedUser: User) {
 // Function to handle deleting a user
 async function handleDeleteUser(user: User) {
   if (user.id === currentUser.value?.id) {
-    alert('You cannot delete your own account!');
-    return;
+    alert('You cannot delete your own account!')
+    return
   }
 
   if (confirm(`Are you sure you want to delete user ${user.firstname} ${user.lastname}?`)) {
     try {
-      // First delete from auth - note that the endpoint is "auth/delete/:id"
-      const authResponse = await api<DataEnvelope<{ message: string }>>(`auth/delete/${user.id}`, null, 'DELETE');
-      if (authResponse.error) {
-        console.error('Error deleting auth user:', authResponse.error);
-      }
-
-      // Then delete from users table
-      const response = await api<DataEnvelope<{ message: string }>>(`users/${user.id}`, null, 'DELETE');
+      console.log(`Attempting to delete user with ID: ${user.id}`)
+      const response = await api<DataEnvelope<{ message: string }>>(`auth/delete/${user.id}`, null, 'DELETE')
+      
       if (response.error) {
-        alert(response.error);
-        return;
+        console.error('Delete response error:', response.error)
+        alert(`Error deleting user: ${response.error}`)
+        return
       }
       
-      await fetchUsers(); // Refresh user list
-    } catch (error) {
-      console.error('Error deleting user:', error);
-      alert('Failed to delete user completely. The user might be partially deleted.');
+      console.log('Delete response:', response)
+      await fetchUsers() 
+    } catch (error: any) {
+      console.error('Delete operation error:', error)
+      alert(`Failed to delete user: ${error.message || 'Unknown error'}`)
     }
   }
 }

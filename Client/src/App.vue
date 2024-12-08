@@ -3,15 +3,18 @@ import { ref, provide, onMounted, watch } from 'vue'
 import type { User } from '@/models/types'
 import NavBar from '@/components/NavBar.vue'
 import LoginModal from '@/components/LoginModal.vue'
+import SignUpModal from './components/SignUpModal.vue'
 import { verifySession } from '@/models/auth'
 
 
 const currentUser = ref<User | null>(null)
 const showLoginModal = ref(false)
+const showSignupModal = ref(false)
 
 // Provide both values
 provide('currentUser', currentUser)
 provide('showLoginModal', showLoginModal)
+provide('showSignupModal', showSignupModal)
 
 
 // Verify session on app mount
@@ -63,6 +66,7 @@ watch(currentUser, (newUser) => {
 <template>
   <NavBar />
   <LoginModal v-if="showLoginModal" />
+  <SignUpModal v-if="showSignupModal"/>
   <RouterView />
 </template>
 

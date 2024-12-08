@@ -36,13 +36,31 @@ export async function register(userData: {
   username: string
 }): Promise<DataEnvelope<User>> {
   try {
-    const response = await api<AuthResponse>('auth/register', userData)
+    // Transform the data to match server expectations
+    const serverData = {
+      firstname: userData.firstName,
+      lastname: userData.lastName,
+      email: userData.email,
+      password: userData.password,
+      username: userData.username,
+      role: 'user',
+      image: 'https://dummyjson.com/icon/user/128',
+      ip: '0.0.0.0',
+      macaddress: '00:00:00:00:00:00'
+    }
+
+    console.log('Sending registration data:', serverData)
+    const response = await api<AuthResponse>('auth/register', serverData)
+
     if (response.error) {
+      console.error('Registration error:', response.error)
       return { error: response.error, data: null as any }
     }
+
     return { data: response.data! }
-  } catch (error) {
-    return { error: 'Registration failed', data: null as any }
+  } catch (error: any) {
+    console.error('Registration failed:', error)
+    return { error: error.message || 'Registration failed', data: null as any }
   }
 }
 

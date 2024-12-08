@@ -1,23 +1,82 @@
-<!--
-
-Work In Progress
-
-
 <script setup lang="ts">
+import { ref, inject, type Ref } from 'vue'
+import type { User } from '@/models/types'
+import { useRouter } from 'vue-router'
+import { register } from '@/models/auth'
 
+const currentUser = inject<Ref<User | null>>('currentUser')!
+const showSignupModal = inject<Ref<boolean>>('showSignupModal')!
+const showLoginModal = inject<Ref<boolean>>('showLoginModal')!
+const router = useRouter()
+
+const formData = ref({
+  firstName: '',
+  lastName: '',
+  email: '',
+  username: '',
+  password: ''
+})
+
+const error = ref('')
+const isLoading = ref(false)
+
+async function handleSubmit(event: Event) {
+  event.preventDefault()
+  isLoading.value = true
+  error.value = ''
+
+  try {
+    const response = await register({
+      firstName: formData.value.firstName,
+      lastName: formData.value.lastName,
+      email: formData.value.email,
+      password: formData.value.password,
+      username: formData.value.username
+    })
+    
+    if (response.error) {
+      error.value = response.error
+      return
+    }
+
+    currentUser.value = response.data
+    localStorage.setItem('userId', response.data.id)
+    resetForm()
+    showSignupModal.value = false
+    router.push('/dashboard')
+  } catch (err) {
+    error.value = 'Registration failed. Please try again.'
+  } finally {
+    isLoading.value = false
+  }
+}
+
+function resetForm() {
+  formData.value = {
+    firstName: '',
+    lastName: '',
+    email: '',
+    username: '',
+    password: ''
+  }
+}
+
+function switchToLogin() {
+  showSignupModal.value = false
+  showLoginModal.value = true
+}
 </script>
 
 <template>
   <div v-if="showSignupModal" class="modal-overlay" @click="showSignupModal = false">
     <div class="signup-container" @click.stop>
-      
       <p class="signup-subtext">Create your account by filling out the form below.</p>
       
       <div v-if="error" class="error-message">
         {{ error }}
       </div>
 
-      <form id="signup-form" class="signup-form" @submit.prevent="handleSignup">
+      <form id="signup-form" class="signup-form" @submit="handleSubmit">
         <label for="firstName" class="form-label">First Name:</label>
         <input
           type="text"
@@ -35,6 +94,16 @@ Work In Progress
           v-model="formData.lastName"
           class="form-input"
           placeholder="Enter your last name"
+          required
+        />
+
+        <label for="username" class="form-label">Username:</label>
+        <input
+          type="text"
+          id="username"
+          v-model="formData.username"
+          class="form-input"
+          placeholder="Choose a username"
           required
         />
 
@@ -68,74 +137,13 @@ Work In Progress
       </form>
       
       <p class="login-link">
-        Already have an account? <a href="#" @click.prevent="$emit('switchToLogin')">Log In</a>
+        Already have an account? <a href="#" @click.prevent="switchToLogin">Log In</a>
       </p>
     </div>
   </div>
 </template>
 
-<script>
-export default {
-  props: {
-    showSignupModal: {
-      type: Boolean,
-      required: true,
-    },
-  },
-  data() {
-    return {
-      isLoading: false,
-      error: null,
-      formData: {
-        firstName: '',
-        lastName: '',
-        email: '',
-        password: '',
-      },
-    };
-  },
-  methods: {
-    async handleSignup() {
-      this.isLoading = true;
-      this.error = null;
-
-      try {
-        // Replace with your Supabase signup logic
-        const { data, error } = await this.$supabase.auth.signUp({
-          email: this.formData.email,
-          password: this.formData.password,
-        });
-
-        if (error) {
-          throw new Error(error.message);
-        }
-
-        // Add additional user data to your Supabase `users` table
-        const { error: insertError } = await this.$supabase
-          .from('users')
-          .insert({
-            firstName: this.formData.firstName,
-            lastName: this.formData.lastName,
-            email: this.formData.email,
-          });
-
-        if (insertError) {
-          throw new Error(insertError.message);
-        }
-
-        this.$emit('signupSuccess'); // Emit event to notify successful signup
-      } catch (err) {
-        this.error = err.message || 'An error occurred during signup.';
-      } finally {
-        this.isLoading = false;
-      }
-    },
-  },
-};
-</script>
-
 <style scoped>
-/* Reuse styles from your login modal and adjust as necessary */
 .modal-overlay {
   position: fixed;
   top: 0;
@@ -168,6 +176,18 @@ export default {
   display: flex;
   flex-direction: column;
   gap: 1rem;
+}
+
+.form-label {
+  color: #2a5934;
+  font-weight: bold;
+}
+
+.form-input {
+  padding: 0.5rem;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 1rem;
 }
 
 .error-message {
@@ -214,4 +234,4 @@ export default {
 .login-link a:hover {
   text-decoration: underline;
 }
-</style> -->
+</style>

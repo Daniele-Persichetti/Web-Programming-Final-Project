@@ -4,12 +4,14 @@ import { RouterLink, useRouter } from 'vue-router'
 import type { User } from '@/models/types'
 import LoginModal from './LoginModal.vue'
 import { logout } from '@/models/auth'
+import SignupModal from './SignUpModal.vue'
 
 
 
 const router = useRouter()
 const currentUser = inject<Ref<User | null>>('currentUser')!
 const showLoginModal = inject<Ref<boolean>>('showLoginModal')!
+  const showSignupModal = inject<Ref<boolean>>('showSignupModal')!
 
 const isOpen = ref(false)
 const isAdminDropdownOpen = ref(false)
@@ -90,7 +92,7 @@ watch(() => currentUser.value, (newUser) => {
             <div class="buttons">
               <!-- Login/Signup buttons when not logged in -->
               <template v-if="!currentUser">
-                <button class="button is-primary mr-2">
+                <button class="button is-primary mr-2" @click="showSignupModal = true">
                   <strong>Sign Up</strong>
                 </button>
                 <button class="button is-light" @click="showLoginModal = true">
@@ -131,6 +133,7 @@ watch(() => currentUser.value, (newUser) => {
       </div>
     </div>
   </nav>
+  <SignupModal v-if="showSignupModal" />
 
   <!-- Login Modal -->
   <LoginModal v-if="showLoginModal" />

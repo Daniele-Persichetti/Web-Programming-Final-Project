@@ -6,12 +6,18 @@ import { login } from '@/models/auth'
 
 const currentUser = inject<Ref<User | null>>('currentUser')!
 const showLoginModal = inject<Ref<boolean>>('showLoginModal')!
+  const showSignupModal = inject<Ref<boolean>>('showSignupModal')!
 const router = useRouter()
 
 const email = ref('')
 const password = ref('')
 const error = ref('')
 const isLoading = ref(false)
+
+function switchToSignup() {
+  showLoginModal.value = false
+  showSignupModal.value = true
+}
 
 async function handleSubmit(event: Event) {
   event.preventDefault()
@@ -87,7 +93,7 @@ async function handleSubmit(event: Event) {
       </form>
       
       <p class="register-link">
-        Don't have an account? <a href="#" @click.prevent="$emit('close')">Sign Up</a>
+       Don't have an account? <a href="#" @click.prevent="switchToSignup">Sign Up</a>
       </p>
     </div>
   </div>

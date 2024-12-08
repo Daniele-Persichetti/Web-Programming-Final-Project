@@ -70,7 +70,7 @@ const currentUser = inject<Ref<User | null>>('currentUser')!
             <p><strong>Date of Birth:</strong> {{ currentUser.birthdate }}</p>
             <p>
               <strong>Gender:</strong>
-              {{ currentUser.gender!.charAt(0).toUpperCase() + currentUser.gender!.slice(1) }}
+              {{ currentUser.gender?.charAt(0).toUpperCase()}}
             </p>
           </div>
           <!-- Achievement Wall -->

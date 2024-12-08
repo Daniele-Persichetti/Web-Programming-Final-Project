@@ -28,7 +28,7 @@ router
       .then((x) => res.send(x))
       .catch(next);
   })
-  .delete("/:id", (req, res, next) => {
+  .delete("/delete/:id", (req, res, next) => {
     users
       .remove(req.params.id)
       .then((x) => res.send(x))

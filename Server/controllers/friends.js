@@ -17,7 +17,6 @@ router
       .then((x) => res.send(x))
       .catch(next);
   })
-  // Simplified status check
   .get("/status/:userId/:friendId", async (req, res, next) => {
     try {
       const { data, error } = await conn
@@ -38,7 +37,6 @@ router
       res.json({ data: false });
     }
   })
-  // Simplified friend creation
   .post("/", async (req, res, next) => {
     try {
       const friendData = {
