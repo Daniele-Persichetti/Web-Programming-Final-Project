@@ -1,5 +1,5 @@
 const API_URL = import.meta.env.PROD
-  ? '/api/v1/' // Production: relative path
+  ? 'https://web-programming-final-project-fitness-app.onrender.com/api/v1/' // Production: relative path
   : 'http://localhost:3000/api/v1/' // Development: local server
 
 export async function rest<T>(url: string, data?: any, method?: string): Promise<T> {
