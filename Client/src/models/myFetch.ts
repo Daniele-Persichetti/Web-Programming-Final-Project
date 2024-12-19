@@ -1,50 +1,29 @@
-const API_URL = import.meta.env.PROD
-  ? 'https://web-programming-final-project-fitness-app.onrender.com/api/v1/' // Production: relative path
-  : 'http://localhost:3000/api/v1/' // Development: local server
+const BASE_URL = import.meta.env.PROD
+  ? 'https://web-programming-final-project-fitness-app.onrender.com'
+  : 'http://localhost:3000'
+
+const API_ROOT = '/api/v1'
 
 export async function rest<T>(url: string, data?: any, method?: string): Promise<T> {
-  const controller = new AbortController()
-  const timeoutId = setTimeout(() => controller.abort(), 5000) // 5 second timeout
+  const response = await fetch(url, {
+    method: method ?? (data ? 'POST' : 'GET'),
+    headers: {
+      'Content-Type': 'application/json'
+    },
+    body: data ? JSON.stringify(data) : undefined
+  })
 
-  try {
-    const response = await fetch(url, {
-      method: method ?? (data ? 'POST' : 'GET'),
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: data ? JSON.stringify(data) : undefined,
-      signal: controller.signal
-    })
-
-    clearTimeout(timeoutId)
-
-    if (!response.ok) {
-      // Try to get error details from response
-      const errorData = await response.json().catch(() => null)
-      throw new Error(errorData?.error || `HTTP error! status: ${response.status}`)
-    }
-
-    const result = await response.json()
-    return result
-  } catch (error: any) {
-    if (error.name === 'AbortError') {
-      throw new Error('Request timed out after 5 seconds')
-    }
-    throw error
+  if (!response.ok) {
+    throw new Error(`HTTP error! status: ${response.status}`)
   }
+
+  return response.json()
 }
 
-export async function api<T>(url: string, data?: any, method?: string): Promise<T> {
-  const fullUrl = API_URL + url
-  console.log(`Making ${method || (data ? 'POST' : 'GET')} request to:`, fullUrl)
-  if (data) console.log('With data:', data)
-
-  try {
-    return await rest<T>(fullUrl, data, method)
-  } catch (error) {
-    console.error('API request failed:', error)
-    throw error
-  }
+export function api<T>(path: string, data?: any, method?: string): Promise<T> {
+  const url = `${BASE_URL}${API_ROOT}/${path}`
+  console.log('Calling API:', url)
+  return rest<T>(url, data, method)
 }
 
 export async function loadScript(url: string): Promise<void> {

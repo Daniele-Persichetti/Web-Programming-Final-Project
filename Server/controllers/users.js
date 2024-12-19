@@ -4,6 +4,12 @@ import * as users from "../model/users.js";
 const router = express.Router();
 
 router
+  .get("/search/:term", (req, res, next) => {
+    users
+      .searchUsers(req.params.term)
+      .then((x) => res.send(x))
+      .catch(next);
+  })
   .get("/", (req, res, next) => {
     users
       .getAll()

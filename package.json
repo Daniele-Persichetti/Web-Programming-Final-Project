@@ -2,13 +2,13 @@
   "name": "web-programming-final-project",
   "version": "1.0.0",
   "description": "",
+  "type": "module",
   "scripts": {
     "start": "node Server/index.mjs",
     "build": "cd Client && npm install && npm run build",
     "dev": "nodemon Server/index.mjs --watch server",
     "install": "cd Client && npm install"
   },
-  "type": "module",
   "dependencies": {
     "@supabase/supabase-js": "^2.46.2",
     "cors": "^2.8.5",

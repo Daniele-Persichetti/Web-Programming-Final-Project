@@ -1,43 +1,39 @@
 <script setup lang="ts">
-import { ref, onMounted, computed, watch, inject, type Ref } from 'vue'
+import { ref, onMounted, watch, inject, type Ref } from 'vue'
 import type { Workout } from '@/models/types'
 import type { User } from '@/models/types'
 import FriendsActivityCard from '@/components/FriendsActivityCard.vue'
 import { api } from '@/models/myFetch'
+import AutoComplete from 'primevue/autocomplete'
 
 const currentUser = inject<Ref<User | null>>('currentUser')!
 
 const friendWorkouts = ref<Array<{ workout: Workout; user: User }>>([])
 const searchQuery = ref('')
-const allUsers = ref<User[]>([])
+const searchResults = ref<User[]>([])
 const friendStatuses = ref<{ [key: string]: boolean }>({})
+const searchLoading = ref(false)
 
-// Get all users and filter out current user for search
-async function loadAllUsers() {
+// Handle user search with server-side filtering
+async function handleSearch(event: { query: string }) {
+  if (!event.query.trim() || event.query.length < 2) {
+    searchResults.value = []
+    return
+  }
+
+  searchLoading.value = true
   try {
-    const response = await api<{ data: User[] }>('users')
+    const response = await api<{ data: User[] }>(`users/search/${event.query}`)
     if (response.data) {
-      allUsers.value = response.data.filter((user) => user.id !== currentUser.value?.id)
+      searchResults.value = response.data.filter(user => user.id !== currentUser.value?.id)
     }
   } catch (error) {
-    console.error('Error loading users:', error)
+    console.error('Error searching users:', error)
+    searchResults.value = []
+  } finally {
+    searchLoading.value = false
   }
 }
-
-// Computed property for filtered search results
-const searchResults = computed(() => {
-  if (!searchQuery.value || !currentUser.value) return []
-
-  const query = searchQuery.value.toLowerCase()
-  return allUsers.value
-    .filter(
-      (user) =>
-        user.firstname.toLowerCase().includes(query) ||
-        user.lastname.toLowerCase().includes(query) ||
-        user.username.toLowerCase().includes(query)
-    )
-    .slice(0, 5)
-})
 
 // Function to add a friend (follow)
 async function addFriend(user: User) {
@@ -51,7 +47,7 @@ async function addFriend(user: User) {
     
     // Update local friend status
     friendStatuses.value[user.id] = true
-    await getRecentFriendWorkouts() // Refresh friend workouts
+    await getRecentFriendWorkouts()
   } catch (error) {
     console.error('Error following user:', error)
     alert('Failed to follow user')
@@ -120,14 +116,14 @@ async function getRecentFriendWorkouts() {
 watch(
   () => currentUser.value,
   () => {
-    loadAllUsers()
     getRecentFriendWorkouts()
   }
 )
 
-onMounted(async () => {
-  await loadAllUsers()
-  await getRecentFriendWorkouts()
+onMounted(() => {
+  if (currentUser.value) {
+    getRecentFriendWorkouts()
+  }
 })
 </script>
 
@@ -154,18 +150,63 @@ onMounted(async () => {
         <div class="right-column">
           <h2 class="section-title">Search Users</h2>
 
-          <!-- Search Bar -->
+          <!-- Search Container -->
           <div class="search-container">
-            <input
+            <AutoComplete
               v-model="searchQuery"
-              type="text"
-              class="search-input"
+              :suggestions="searchResults"
+              :delay="300"
+              :min-length="2"
+              @complete="handleSearch"
               placeholder="Search by name or username..."
-            />
+              :dropdown="true"
+              class="w-full"
+              :loading="searchLoading"
+              optionLabel="username"
+            >
+              <template #option="slotProps">
+                <div class="user-suggestion">
+                  <img 
+                    :src="slotProps.option.image" 
+                    :alt="slotProps.option.firstname"
+                    class="user-suggestion-img"
+                  />
+                  <div class="user-suggestion-info">
+                    <div class="name">
+                      {{ slotProps.option.firstname }} {{ slotProps.option.lastname }}
+                    </div>
+                    <div class="username">@{{ slotProps.option.username }}</div>
+                  </div>
+                  <div class="action-icons">
+                    <button
+                      v-if="!friendStatuses[slotProps.option.id]"
+                      class="action-button add-friend"
+                      @click.stop="addFriend(slotProps.option)"
+                    >
+                      <i class="fas fa-user-plus"></i>
+                      <span>Follow</span>
+                    </button>
+                    <button
+                      v-else
+                      class="action-button remove-friend"
+                      @click.stop="handleRemoveFriend(slotProps.option)"
+                    >
+                      <i class="fas fa-user-minus"></i>
+                      <span>Unfollow</span>
+                    </button>
+                  </div>
+                </div>
+              </template>
+            </AutoComplete>
+          </div>
+
+          <!-- Search Results Status -->
+          <div v-if="searchLoading" class="search-status">
+            Searching...
           </div>
 
           <!-- Search Results -->
-          <div v-if="searchQuery && searchResults.length > 0" class="search-results">
+          <div v-if="searchResults.length > 0" class="search-results">
             <div
               v-for="user in searchResults"
               :key="user.id"
@@ -198,7 +239,7 @@ onMounted(async () => {
           </div>
 
           <!-- No Results Message -->
-          <div v-else-if="searchQuery && searchResults.length === 0" class="no-results">
+          <div v-else-if="searchQuery && !searchLoading" class="no-results">
             No users found matching your search.
           </div>
         </div>
@@ -363,6 +404,71 @@ h3 {
 
 .remove-friend:hover {
   background-color: rgba(220, 53, 69, 0.1);
+}
+
+/* PrimeVue AutoComplete Customization */
+:deep(.p-autocomplete) {
+  width: 100%;
+}
+
+:deep(.p-autocomplete-input) {
+  width: 100% !important;
+  padding: 12px !important;
+  border: 2px solid #2a5934 !important;
+  border-radius: 8px !important;
+  font-size: 1em !important;
+  transition: border-color 0.3s !important;
+}
+
+:deep(.p-autocomplete-input:focus) {
+  outline: none !important;
+  border-color: #1e4727 !important;
+  box-shadow: none !important;
+}
+
+:deep(.p-autocomplete-panel) {
+  border: 1px solid #e0e0e0 !important;
+  border-radius: 8px !important;
+  margin-top: 4px !important;
+}
+
+/* User Suggestion Styles */
+.user-suggestion {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  padding: 12px;
+}
+
+.user-suggestion-img {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.user-suggestion-info {
+  display: flex;
+  flex-direction: column;
+  flex-grow: 1;
+}
+
+.user-suggestion-info .name {
+  font-weight: 500;
+  color: #2a5934;
+}
+
+.user-suggestion-info .username {
+  font-size: 0.9em;
+  color: #666;
+}
+
+/* Search Status */
+.search-status {
+  text-align: center;
+  color: #666;
+  margin-top: 10px;
+  font-style: italic;
 }
 
 /* Responsive Design */

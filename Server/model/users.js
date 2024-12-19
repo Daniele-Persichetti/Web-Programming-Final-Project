@@ -40,3 +40,15 @@ export async function remove(id) {
     ? { error: error.message }
     : { data: { message: "User deleted successfully" } };
 }
+
+export async function searchUsers(searchTerm) {
+  const { data, error } = await conn
+    .from("users")
+    .select("id, firstname, lastname, username, image")
+    .or(
+      `firstname.ilike.%${searchTerm}%,lastname.ilike.%${searchTerm}%,username.ilike.%${searchTerm}%`
+    )
+    .limit(5);
+
+  return error ? { error: error.message } : { data };
+}
