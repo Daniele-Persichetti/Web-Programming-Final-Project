@@ -205,7 +205,7 @@ onMounted(() => {
             Searching...
           </div>
 
-          <!-- Search Results -->
+          <!-- Search Results
           <div v-if="searchResults.length > 0" class="search-results">
             <div
               v-for="user in searchResults"
@@ -236,7 +236,7 @@ onMounted(() => {
                 </button>
               </div>
             </div>
-          </div>
+          </div> -->
 
           <!-- No Results Message -->
           <div v-else-if="searchQuery && !searchLoading" class="no-results">
