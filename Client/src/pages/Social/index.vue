@@ -205,39 +205,6 @@ onMounted(() => {
             Searching...
           </div>
 
-          <!-- Search Results
-          <div v-if="searchResults.length > 0" class="search-results">
-            <div
-              v-for="user in searchResults"
-              :key="user.id"
-              class="user-result-blurb"
-            >
-              <img :src="user.image ?? undefined" :alt="user.firstname" class="user-img" />
-              <div class="user-info">
-                <h4 class="user-name">{{ user.firstname }} {{ user.lastname }}</h4>
-                <p class="username">@{{ user.username }}</p>
-              </div>
-              <div class="action-icons">
-                <button
-                  v-if="!friendStatuses[user.id]"
-                  class="action-button add-friend"
-                  @click="addFriend(user)"
-                >
-                  <i class="fas fa-user-plus"></i>
-                  <span>Follow</span>
-                </button>
-                <button
-                  v-else
-                  class="action-button remove-friend"
-                  @click="handleRemoveFriend(user)"
-                >
-                  <i class="fas fa-user-minus"></i>
-                  <span>Unfollow</span>
-                </button>
-              </div>
-            </div>
-          </div> -->
-
           <!-- No Results Message -->
           <div v-else-if="searchQuery && !searchLoading" class="no-results">
             No users found matching your search.
